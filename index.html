@@ -69,6 +69,15 @@ main{padding:18px 0 48px}
 .meter i{display:block;height:100%;border-radius:99px}
 .k-blue .ic{background:var(--blueS);color:var(--blue)}.k-green .ic{background:var(--greenS);color:var(--green)}.k-red .ic{background:var(--redS);color:var(--red)}.k-amber .ic{background:var(--amberS);color:var(--amber)}
 .k-red .n{color:var(--red)}
+[data-f],[data-reset]{cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s}
+.kpi[data-f]:hover,.kpi[data-reset]:hover,.dc:hover,.sbox:hover{border-color:color-mix(in srgb,var(--blue) 55%,var(--line));box-shadow:var(--shL)}
+.lr[data-f]:hover{background:var(--soft)}
+.act{border-color:var(--blue)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--blue) 45%,transparent)!important}
+.lr.act{box-shadow:none!important;background:var(--blueS)}
+.lr{padding-inline:8px;border-radius:8px}
+.fig rect.hit{fill:transparent;cursor:pointer}.fig rect.hit:hover{fill:color-mix(in srgb,var(--blue) 8%,transparent)}
+.hint{font-size:12.5px;color:var(--mut)}
+#bClearF{min-height:40px;align-self:end}
 .grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px;margin-top:14px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
 @media(max-width:960px){.grid,.grid2{grid-template-columns:minmax(0,1fr)}}
@@ -187,6 +196,7 @@ table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding:10
       <label>Discount via<select id="fVia"></select></label>
       <label>Status<select id="fSt"><option value="">All</option><option>Open</option><option>Closed</option></select></label>
       <label>Search<input id="fQ" type="search" placeholder="Deal, URN, CN ref"></label>
+      <button type="button" id="bClearF" hidden>Clear filters</button>
     </div>
   </div>
   <div id="msg"></div>
@@ -194,36 +204,36 @@ table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding:10
 <main>
   <section id="vDash">
     <div class="kpis">
-      <div class="card kpi k-blue"><div class="top"><span class="l">Negotiated amount</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span></div>
+      <div class="card kpi k-blue" data-reset="1" title="Click to clear all filters"><div class="top"><span class="l">Negotiated amount</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span></div>
         <div class="n" id="kNeg">–</div><div class="s" id="kNegS">&nbsp;</div><div class="meter"><i id="kNegBar" style="width:100%;background:var(--blue)"></i></div></div>
-      <div class="card kpi k-green"><div class="top"><span class="l">CN received / adjusted</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+      <div class="card kpi k-green" data-f="fSt" data-v="Closed" title="Click to show closed deals"><div class="top"><span class="l">CN received / adjusted</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
         <div class="n" id="kRec">–</div><div class="s" id="kRecS">&nbsp;</div><div class="meter"><i id="kRecBar" style="width:0;background:var(--green)"></i></div></div>
-      <div class="card kpi k-red"><div class="top"><span class="l">Pending on open deals</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span></div>
+      <div class="card kpi k-red" data-f="fSt" data-v="Open" title="Click to show open deals"><div class="top"><span class="l">Pending on open deals</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span></div>
         <div class="n" id="kPen">–</div><div class="s" id="kPenS">&nbsp;</div><div class="meter"><i id="kPenBar" style="width:0;background:var(--red)"></i></div></div>
-      <div class="card kpi k-amber"><div class="top"><span class="l">Open deals</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h12"/></svg></span></div>
+      <div class="card kpi k-amber" data-f="fSt" data-v="Open" data-go="deals" title="Click to list open deals"><div class="top"><span class="l">Open deals</span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h12"/></svg></span></div>
         <div class="n" id="kOpen">–</div><div class="s" id="kOpenS">&nbsp;</div><div class="meter"><i id="kOpenBar" style="width:0;background:var(--amber)"></i></div></div>
     </div>
-    <p class="note">All amounts without GST. A closed deal with no CN amount entered counts its negotiated amount as received.</p>
+    <p class="note">Click any card, bar, disti or row to filter the whole dashboard · click again to clear. All amounts without GST; a closed deal with no CN amount counts its negotiated amount as received.</p>
 
     <div class="grid">
       <div class="card">
-        <div class="ch"><div><h2>Quarter trend</h2><p class="cap">Negotiated vs received, Apple fiscal quarters</p></div>
+        <div class="ch"><div><h2>Quarter trend</h2><p class="cap">Click a quarter to filter</p></div>
           <div class="legend"><span><i style="background:var(--blue)"></i>Negotiated</span><span><i style="background:var(--green)"></i>Received</span><span><i style="background:var(--red)"></i>Pending</span></div></div>
         <div class="fig" id="qFig"><svg id="qSvg" role="img" aria-label="Quarter trend chart"></svg></div>
       </div>
       <div class="card">
-        <h2>By disti</h2><p class="cap">Recovery of negotiated amount</p>
+        <h2>By disti</h2><p class="cap">Recovery of negotiated amount · click to filter</p>
         <div class="dl" id="byD"></div>
       </div>
     </div>
 
     <div class="grid2">
       <div class="card">
-        <h2>By discount via</h2><p class="cap">Negotiated amount and pending per route</p>
+        <h2>By discount via</h2><p class="cap">Negotiated and pending per route · click to filter</p>
         <div id="byV"></div>
       </div>
       <div class="card">
-        <h2>Deal status</h2><p class="cap">Open vs closed for current filters</p>
+        <h2>Deal status</h2><p class="cap">Open vs closed · click to filter</p>
         <div class="status" id="stBox"></div>
         <div class="stackbar" style="height:10px;margin-top:14px"><i id="stOpen" style="background:var(--red)"></i><i id="stClosed" style="background:var(--green)"></i></div>
         <div id="byQ" hidden></div>
@@ -258,7 +268,7 @@ table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding:10
       <label class="q">Quarter (auto)<input id="i_qtr" placeholder="Q1'27"></label>
       <label class="q">Apple week (auto)<input id="i_week" placeholder="WK05"></label>
       <label class="w">Deal details<textarea id="i_details" required></textarea></label>
-      <label>Discount via<select id="i_via"><option>CN</option><option>Upfront</option><option>URN</option><option>PC</option><option>ORC</option></select></label>
+      <label>Discount via<select id="i_via"><option>URN/CN/PC</option><option>Upfront</option><option>ORC</option></select></label>
       <label>URN / PC no.<input id="i_urn"></label>
       <div class="sec">Working &amp; CN details</div>
       <label>1. Billing &amp; CN calculation amount<input id="i_billing" inputmode="decimal"></label>
@@ -322,8 +332,9 @@ const pending=d=>d.status==='Open'?Math.max(0,(d.billing||0)-(d.cn||0)):0;
 
 function say(t,err){$('msg').textContent=t;$('msg').className=err?'err':''}
 
-function filtered(){
-  const fd=$('fDisti').value,fq=$('fQtr').value,fv=$('fVia').value,fs=$('fSt').value,q=$('fQ').value.trim().toLowerCase();
+function filtered(skip){
+  const g=id=>skip===id?'':$(id).value;
+  const fd=g('fDisti'),fq=g('fQtr'),fv=g('fVia'),fs=g('fSt'),q=$('fQ').value.trim().toLowerCase();
   return deals.filter(d=>(!fd||d.disti===fd)&&(!fq||d.qtr===fq)&&(!fv||d.via===fv)&&(!fs||d.status===fs)&&
     (!q||[d.details,d.urn,d.cnRef,d.remarks,d.cnDate].join(' ').toLowerCase().includes(q)));
 }
@@ -340,13 +351,13 @@ function agg(list,key){
 function groupRows(list,key,sorter){
   const g=agg(list,key),ks=Object.keys(g).sort(sorter||((a,b)=>g[b].neg-g[a].neg));
   const mx=Math.max(1,...ks.map(k=>g[k].neg));
-  return ks.length?ks.map(k=>{const r=g[k],n=Math.max(r.neg,1);return`<div class="lr"><div class="k" title="${esc(k)}">${esc(k)}</div>
+  return ks.length?ks.map(k=>{const r=g[k],n=Math.max(r.neg,1);return`<div class="lr"${k!=='(blank)'?` data-f="${key==='via'?'fVia':'fDisti'}" data-v="${esc(k)}"`:''}><div class="k" title="${esc(k)}">${esc(k)}</div>
     <div><div class="stackbar" style="width:${Math.max(4,r.neg/mx*100)}%"><i style="width:${Math.min(100,r.rec/n*100)}%;background:var(--green)"></i><i style="width:${Math.min(100,r.pen/n*100)}%;background:var(--red)"></i></div></div>
     <div class="v">₹${short(r.neg)}<small>${r.pen?'<span class="pendv">₹'+short(r.pen)+' pending</span>':r.c+' deal'+(r.c>1?'s':'')}</small></div></div>`}).join(''):'<div class="empty">No deals for these filters.</div>';
 }
 function distiCards(list){
   const g=agg(list,'disti'),ks=Object.keys(g).sort((a,b)=>g[b].neg-g[a].neg);
-  return ks.length?ks.map(k=>{const r=g[k],n=Math.max(r.neg,1);return`<div class="dc"><div class="hd"><span>${esc(k)}</span><span>₹${short(r.neg)}</span></div>
+  return ks.length?ks.map(k=>{const r=g[k],n=Math.max(r.neg,1);return`<div class="dc"${k!=='(blank)'?` data-f="fDisti" data-v="${esc(k)}"`:''}><div class="hd"><span>${esc(k)}</span><span>₹${short(r.neg)}</span></div>
     <div class="stackbar"><i style="width:${Math.min(100,r.rec/n*100)}%;background:var(--green)"></i><i style="width:${Math.min(100,r.pen/n*100)}%;background:var(--red)"></i></div>
     <div class="meta"><span>Received ₹${short(r.rec)} · ${pct(r.rec/n)}</span>${r.pen?`<b>₹${short(r.pen)} pending</b>`:`<span>${r.c} deal${r.c>1?'s':''}</span>`}</div></div>`}).join(''):'<div class="empty">No deals for these filters.</div>';
 }
@@ -364,11 +375,12 @@ function drawQ(){
     s+=`<line class="gl" x1="${padL}" x2="${W-6}" y1="${y}" y2="${y}"/><text x="${padL-8}" y="${y+4}" text-anchor="end">${i?short(v):'0'}</text>`}
   const gw=cw/qData.length,bw=Math.max(3,Math.min(22,(gw-10)/3));
   qData.forEach((r,i)=>{
-    const x0=padL+gw*i+(gw-bw*3-4)/2;
+    const x0=padL+gw*i+(gw-bw*3-4)/2,sel=$('fQtr').value,dim=sel&&sel!==r.q?' opacity=".3"':'';
     [['neg','var(--blue)'],['rec','var(--green)'],['pen','var(--red)']].forEach(([k,c],j)=>{
       const h=chH*r[k]/top,y=padT+chH-h;
-      s+=`<rect class="b" x="${x0+j*(bw+2)}" y="${y}" width="${bw}" height="${Math.max(h,r[k]?1.5:0)}" rx="3" fill="${c}"><title>${esc(r.q)} · ${k==='neg'?'Negotiated':k==='rec'?'Received':'Pending'} ₹${inr(r[k])}</title></rect>`});
+      s+=`<rect class="b" x="${x0+j*(bw+2)}" y="${y}" width="${bw}" height="${Math.max(h,r[k]?1.5:0)}" rx="3" fill="${c}"${dim}/>`});
     const every=Math.ceil(qData.length/(W/(small?46:64)));
+    s+=`<rect class="hit" x="${padL+gw*i}" y="${padT}" width="${gw}" height="${chH+padB}" rx="6" data-f="fQtr" data-v="${esc(r.q)}"><title>${esc(r.q)} · Negotiated ₹${inr(r.neg)} · Received ₹${inr(r.rec)} · Pending ₹${inr(r.pen)} — click to filter</title></rect>`;
     if(i%every===0)s+=`<text x="${padL+gw*i+gw/2}" y="${H-8}" text-anchor="middle">${esc(r.q)}</text>`;
   });
   qSvg.innerHTML=s;
@@ -397,11 +409,13 @@ function render(){
   $('kRec').textContent='₹'+short(rec);$('kRecS').textContent=`${pct(rec/neg)} of negotiated`;$('kRecBar').style.width=Math.min(100,neg?rec/neg*100:0)+'%';
   $('kPen').textContent='₹'+short(pen);$('kPenS').textContent=`${pct(pen/neg)} of negotiated still due`;$('kPenBar').style.width=Math.min(100,neg?pen/neg*100:0)+'%';
   $('kOpen').textContent=open.length;$('kOpenS').textContent=`of ${L.length} deals`;$('kOpenBar').style.width=(L.length?open.length/L.length*100:0)+'%';
-  const gq=agg(L,'qtr');qData=Object.keys(gq).sort((a,b)=>qKey(a)-qKey(b)||a.localeCompare(b)).map(q=>({q,...gq[q]}));drawQ();
-  $('byD').innerHTML=distiCards(L);$('byV').innerHTML=groupRows(L,'via');
-  $('stBox').innerHTML=`<div class="sbox"><div class="l">Open</div><div class="n" style="color:var(--red)">${open.length}</div><div class="l">₹${short(pen)} pending</div></div>
-    <div class="sbox"><div class="l">Closed</div><div class="n" style="color:var(--green)">${closed}</div><div class="l">₹${short(rec)} received</div></div>`;
+  const gq=agg(filtered('fQtr'),'qtr');qData=Object.keys(gq).sort((a,b)=>qKey(a)-qKey(b)||a.localeCompare(b)).map(q=>({q,...gq[q]}));drawQ();
+  $('byD').innerHTML=distiCards(filtered('fDisti'));$('byV').innerHTML=groupRows(filtered('fVia'),'via');
+  $('stBox').innerHTML=`<div class="sbox" data-f="fSt" data-v="Open"><div class="l">Open</div><div class="n" style="color:var(--red)">${open.length}</div><div class="l">₹${short(pen)} pending</div></div>
+    <div class="sbox" data-f="fSt" data-v="Closed"><div class="l">Closed</div><div class="n" style="color:var(--green)">${closed}</div><div class="l">₹${short(rec)} received</div></div>`;
   $('stOpen').style.width=(L.length?open.length/L.length*100:0)+'%';$('stClosed').style.width=(L.length?closed/L.length*100:0)+'%';
+  for(const el of document.querySelectorAll('[data-f]')){const sv=$(el.dataset.f).value;el.classList.toggle('act',sv===el.dataset.v);if(el.matches('.dc,.lr'))el.style.opacity=sv&&sv!==el.dataset.v?'.45':''}
+  $('bClearF').hidden=!(['fDisti','fQtr','fVia','fSt'].some(id=>$(id).value)||$('fQ').value);
   const op=[...open].sort((a,b)=>pending(b)-pending(a));
   $('openCap').textContent=op.length>10?`Top 10 of ${op.length} by pending · click a row to edit`:'Highest pending first · click a row to edit';
   $('openT').innerHTML=op.length?HEAD+'<tbody>'+op.slice(0,10).map(dealRow).join('')+'</tbody>':'<tbody><tr><td class="empty">No open deals.</td></tr></tbody>';
@@ -410,6 +424,15 @@ function render(){
   $('dealT').innerHTML=all.length?HEAD+'<tbody>'+all.map(dealRow).join('')+'</tbody>':'<tbody><tr><td class="empty">No deals yet. Use “New deal” or “Import Excel”.</td></tr></tbody>';
 }
 
+function clearF(){['fDisti','fQtr','fVia','fSt'].forEach(id=>$(id).value='');$('fQ').value='';render()}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#bClearF')){clearF();return}
+  const r=e.target.closest('[data-reset]');if(r){clearF();say('All filters cleared.');return}
+  const c=e.target.closest('[data-f]');if(!c)return;
+  const s=$(c.dataset.f),v=c.dataset.v;if(![...s.options].some(o=>o.value===v))return;
+  s.value=s.value===v?'':v;render();
+  if(c.dataset.go&&s.value)location.hash='#'+c.dataset.go;
+});
 /* routing */
 function route(){const deal=location.hash==='#deals';$('vDash').hidden=deal;$('vDeals').hidden=!deal;$('tDash').className=deal?'':'on';$('tDeals').className=deal?'on':''}
 window.addEventListener('hashchange',route);route();
@@ -458,9 +481,9 @@ $('attIn').addEventListener('change',async e=>{
 function openForm(d){
   attMsg={};att={billingFiles:[...(d?.billingFiles||[])],cnFiles:[...(d?.cnFiles||[])]};attNew=[];attRemoved=[];drawAtt();
   editId=d?d.id:null;$('fTitle').textContent=d?'Edit deal':'New deal';$('bDel').hidden=!d;$('conf').className='conf';
-  {const sv=$('i_via'),v=d?.via;if(v&&![...sv.options].some(o=>o.value===v)){const o=document.createElement('option');o.textContent=v;sv.appendChild(o)}}
+  {const sv=$('i_via');[...sv.options].slice(3).forEach(o=>o.remove());const v=d?.via;if(v&&![...sv.options].some(o=>o.value===v)){const o=document.createElement('option');o.textContent=v;sv.appendChild(o)}}
   for(const k of F){const v=d?d[k]:'';$('i_'+k).value=v==null?'':((k==='billing'||k==='cn')&&v!==''?String(v):v)}
-  if(!d){$('i_via').value='CN';$('i_status').value='Open';$('i_date').value=new Date().toISOString().slice(0,10);autoWeek()}
+  if(!d){$('i_via').value='URN/CN/PC';$('i_status').value='Open';$('i_date').value=new Date().toISOString().slice(0,10);autoWeek()}
   showPend();$('sheet').className='sheet on';$('i_disti').focus();
 }
 function closeForm(saved){
