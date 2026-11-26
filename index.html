@@ -1,0 +1,1491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discount Radar</title>
+<meta name="description" content="Offer compliance check: actual discount on every bill vs discount allowed by the offer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%231d3a8a'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%2393b4ff' stroke-width='2'/%3E%3Cpath d='M16 16 L27 9' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='20' r='2.5' fill='%23ff6b6b'/%3E%3C/svg%3E">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f3f5f9; --card:#ffffff; --ink:#101828; --ink2:#344054; --muted:#667085; --line:#e4e7ec; --soft:#f8fafc;
+  --brand:#1d3a8a; --brand2:#2a5bd7; --accent:#2a78d6;
+  --leak:#e34948; --leak-bg:#fdecec; --allow:#2a78d6;
+  --good:#12805c; --good-bar:#1baf7a; --good-bg:#e7f6ef;
+  --warn:#9a5b00; --warn-bar:#eda100; --warn-bg:#fff4dc;
+  --neutral:#98a2b3; --track:#eef1f6;
+  --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0e1117; --card:#171b23; --ink:#eef1f6; --ink2:#c9cfda; --muted:#98a2b3; --line:#2a303b; --soft:#1c212b;
+    --brand:#1a2f6b; --brand2:#3b6be0; --accent:#3987e5;
+    --leak:#e66767; --leak-bg:#3a1c1c; --allow:#3987e5;
+    --good:#4cc38a; --good-bar:#199e70; --good-bg:#14301f;
+    --warn:#f0c14b; --warn-bar:#c98500; --warn-bg:#352a0e;
+    --neutral:#6b7485; --track:#232937;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0e1117; --card:#171b23; --ink:#eef1f6; --ink2:#c9cfda; --muted:#98a2b3; --line:#2a303b; --soft:#1c212b;
+  --brand:#1a2f6b; --brand2:#3b6be0; --accent:#3987e5;
+  --leak:#e66767; --leak-bg:#3a1c1c; --allow:#3987e5;
+  --good:#4cc38a; --good-bar:#199e70; --good-bg:#14301f;
+  --warn:#f0c14b; --warn-bar:#c98500; --warn-bg:#352a0e;
+  --neutral:#6b7485; --track:#232937;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1320px;margin:0 auto;padding:0 16px}
+.num{font-variant-numeric:tabular-nums}
+
+/* header */
+header{background:linear-gradient(120deg,#0f1d47 0%,#1d3a8a 60%,#2a5bd7 100%);color:#fff}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:16px;padding-bottom:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{flex:none}
+.brand h1{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em}
+.brand p{margin:1px 0 0;font-size:12.5px;color:#c7d4f5}
+.hbtns{display:flex;gap:8px}
+.hbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:8px;padding:7px 12px;font:600 13px Inter,sans-serif;cursor:pointer}
+.hbtn:hover{background:rgba(255,255,255,.18)}
+
+main .wrap{padding-top:18px;padding-bottom:48px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.ct{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.ct h2{font-size:15px;margin:0;font-weight:700;letter-spacing:-.01em}
+.ct span{font-size:12.5px;color:var(--muted)}
+
+/* upload */
+.uploads{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:14px 14px 12px;cursor:pointer;position:relative;display:flex;gap:12px;align-items:flex-start;transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--soft)}
+.drop.done{border-style:solid;border-color:var(--good-bar);background:var(--good-bg)}
+.drop .ic{width:36px;height:36px;border-radius:9px;background:var(--soft);display:grid;place-items:center;flex:none;color:var(--brand2);font-weight:800;font-size:13px;border:1px solid var(--line)}
+.drop.done .ic{background:var(--good-bar);color:#fff;border-color:transparent}
+.drop b{display:block;font-size:14px}
+.drop small{color:var(--muted);display:block}
+.drop .st{margin-top:4px;font-size:12px;color:var(--muted);word-break:break-all}
+.drop.done .st{color:var(--good)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.privacy{font-size:12.5px;color:var(--muted);margin-top:10px}
+.privacy b{color:var(--ink2)}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13.5px}
+.settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+textarea,input[type=text],input[type=number],input[type=search]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:13px/1.4 Inter,sans-serif}
+textarea{min-height:110px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+.actions{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+button{border:0;border-radius:9px;padding:10px 18px;font:600 14px Inter,sans-serif;cursor:pointer;background:var(--brand2);color:#fff}
+button.sec{background:transparent;color:var(--accent);border:1px solid var(--line)}
+button.sec:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+#msg{font-size:13px;color:var(--muted)}
+#msg.err{color:var(--leak)}
+.upl.compact .uploads,.upl.compact details,.upl.compact .privacy{display:none}
+.filesline{display:none;font-size:13px;color:var(--ink2)}
+.upl.compact .filesline{display:block}
+.filesline b{font-weight:600}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-bottom:16px}
+.heroL{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.heroL:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--leak)}
+.eyebrow{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.big{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:8px 0 6px;color:var(--leak)}
+.heroL p{margin:0;color:var(--ink2);font-size:14.5px;max-width:560px}
+.heroL p b{color:var(--ink)}
+.period{display:inline-block;margin-top:12px;font-size:12px;color:var(--muted);background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:3px 10px}
+.minis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.heroL.clk:hover{border-color:var(--leak)}
+.mini{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.mini .l{font-size:12px;color:var(--muted);font-weight:500}
+.mini .v{font-size:24px;font-weight:750;margin-top:2px;letter-spacing:-.02em}
+.mini .s{font-size:12px;color:var(--muted)}
+.mini.warn .v{color:var(--warn)}
+.mini.good .v{color:var(--good)}
+.mini.clk{cursor:pointer}
+
+/* outcome strip */
+.strip{display:flex;height:34px;border-radius:9px;overflow:hidden;gap:2px;background:var(--card)}
+.strip div{height:100%;min-width:3px;cursor:default;transition:filter .15s}
+.strip div:hover{filter:brightness(1.08)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px}
+.lg{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2)}
+.lg i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.lg b{color:var(--ink);font-weight:650}
+
+/* bar charts */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid2 > .card{margin-bottom:16px}
+.bars{display:flex;flex-direction:column;gap:9px}
+.br{display:grid;grid-template-columns:minmax(120px,190px) 1fr 86px;align-items:center;gap:12px;cursor:default}
+.br .lb{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br .lb small{display:block;color:var(--muted);font-size:11.5px;line-height:1.2}
+.br .tr{height:16px;background:var(--track);border-radius:4px;position:relative}
+.br .fl{height:100%;border-radius:0 4px 4px 0;background:var(--leak);min-width:2px}
+.br .vl{text-align:right;font-size:13px;font-weight:650}
+.br:hover .tr{outline:2px solid var(--line)}
+.empty{color:var(--muted);font-size:13px;padding:10px 0}
+
+/* dumbbell */
+.db{display:flex;flex-direction:column;gap:12px}
+.dr{display:grid;grid-template-columns:minmax(140px,220px) 1fr;gap:12px;align-items:center;cursor:default}
+.dr .lb{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr .lb small{display:block;color:var(--muted);font-size:11.5px}
+.dtrack{position:relative;height:22px}
+.dtrack:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+.dline{position:absolute;top:calc(50% - 2px);height:4px;background:var(--leak-bg);border-radius:2px}
+.dot{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;border:2px solid var(--card)}
+.dot.a{background:var(--allow)} .dot.x{background:var(--leak)}
+.dlab{position:absolute;top:-2px;font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+.daxis{display:grid;grid-template-columns:minmax(140px,220px) 1fr;gap:12px;font-size:11px;color:var(--muted);margin-top:4px}
+.daxis div:last-child{display:flex;justify-content:space-between}
+
+/* columns (by day) */
+.cols{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:18px}
+.cb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;cursor:default;min-width:0}
+.cb .c{width:70%;max-width:56px;background:var(--leak);border-radius:4px 4px 0 0;min-height:2px}
+.cb .t{font-size:11.5px;color:var(--ink2);margin-bottom:4px;font-weight:600}
+.cb .d{font-size:11.5px;color:var(--muted);margin-top:6px;white-space:nowrap}
+
+
+/* group cards */
+.segs{display:inline-flex;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg{background:transparent;color:var(--muted);border:0;border-radius:7px;padding:6px 14px;font:600 13px Inter,sans-serif}
+.seg.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.gc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 14px 12px;cursor:pointer;text-align:left;color:var(--ink);font:inherit;display:flex;flex-direction:column;gap:2px;transition:border-color .15s,transform .15s,box-shadow .15s;position:relative}
+.gc:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 18px rgba(16,24,40,.08)}
+.gc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gc .rk{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;color:var(--muted);background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:1px 8px}
+.gc .nm{font-weight:650;font-size:14px;padding-right:44px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc .sb{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:18px}
+.gc .am{font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--leak);margin-top:6px}
+.gc .mt{font-size:12px;color:var(--ink2)}
+.gc .sh{height:5px;background:var(--track);border-radius:3px;margin-top:10px;overflow:hidden}
+.gc .sh i{display:block;height:100%;background:var(--leak);border-radius:3px}
+.gc .ft{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);margin-top:6px;gap:6px}
+.gc .ap{color:var(--warn);background:var(--warn-bg);border-radius:20px;padding:0 7px;font-weight:600;white-space:nowrap}
+.gc.zero .am{color:var(--good)}
+.more{margin-top:12px;text-align:center}
+.clk{cursor:pointer;transition:border-color .15s}
+.clk:hover{border-color:var(--accent)}
+.clk .go{font-size:11.5px;color:var(--accent);font-weight:600;margin-top:4px}
+
+/* stores search */
+.tbar2{display:flex;gap:10px;align-items:center}
+.tbar2 input{width:260px}
+.tbar2 span{font-size:12px;color:var(--muted);white-space:nowrap}
+.gc.ok{opacity:.85}
+.gc.ok .am{color:var(--good)}
+
+.dstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.dstat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.dstat .l{font-size:11.5px;color:var(--muted)}
+.dstat .v{font-size:20px;font-weight:750;letter-spacing:-.02em}
+.dstat.bad .v{color:var(--leak)} .dstat.warn .v{color:var(--warn)}
+/* modal */
+#ov{position:fixed;inset:0;background:rgba(10,15,30,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .18s}
+#ov.on{opacity:1;pointer-events:auto}
+#md{background:var(--bg);width:min(1080px,100%);max-height:calc(100vh - 48px);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);transform:scale(.97) translateY(8px);transition:transform .2s}
+#ov.on #md{transform:none}
+.mdh{background:linear-gradient(120deg,#0f1d47 0%,#1d3a8a 70%,#2a5bd7 100%);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.mdl{display:flex;gap:12px;align-items:center;min-width:0}
+.mdt{font-size:19px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs{font-size:12px;color:#c7d4f5;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.crumbs a{color:#c7d4f5;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.crumbs a:hover{color:#fff}
+.mdh .b{display:flex;gap:8px;flex:none}
+.mdb{overflow:auto;padding:18px;flex:1}
+.lvl{font-size:13px;font-weight:700;margin:4px 0 10px;color:var(--ink2);display:flex;gap:8px;align-items:center}
+.lvl span{font-weight:500;color:var(--muted);font-size:12px}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;cursor:pointer;text-align:left;color:var(--ink);font:inherit;transition:border-color .15s,transform .15s,box-shadow .15s;display:flex;flex-direction:column;gap:4px}
+.cat:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 18px rgba(16,24,40,.08)}
+.cat .ch{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.cat .ci{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--soft);border:1px solid var(--line);font-size:17px}
+.cat .am{font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--leak);margin-top:8px}
+.cat .am.z{color:var(--good)}
+.cat .mt{font-size:12.5px;color:var(--ink2)}
+.cat .ft{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{font-size:11.5px;border-radius:20px;padding:2px 9px;background:var(--soft);border:1px solid var(--line);color:var(--ink2);font-weight:600}
+.chip.w{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.cat .go{font-size:12px;color:var(--accent);font-weight:600;margin-top:8px}
+.cat.dis{cursor:default;opacity:.7}
+.cat.dis:hover{transform:none;border-color:var(--line);box-shadow:none}
+/* invoice cards */
+.invs{display:flex;flex-direction:column;gap:10px}
+.inv{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.inv.ap{border-left:4px solid var(--warn-bar)}
+.inv.lk{border-left:4px solid var(--leak)}
+.invh{display:grid;grid-template-columns:1.3fr 1.6fr repeat(3,minmax(90px,.7fr)) 24px;gap:12px;align-items:center;padding:12px 14px;cursor:pointer}
+.invh:hover{background:var(--soft)}
+.invh .no{font-weight:700;font-size:13.5px}
+.invh .no .store{display:block;font-size:12.5px;font-weight:650;color:var(--accent);margin-top:2px}
+.invh .no .store i{font-style:normal;font-weight:500;color:var(--muted)}
+.invh .no small,.invh .pr small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.invh .pr{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.invh .k{font-size:11px;color:var(--muted)}
+.invh .v{font-size:13.5px;font-weight:650;font-variant-numeric:tabular-nums}
+.invh .v.x{color:var(--leak)}
+.invh .ar{color:var(--muted);transition:transform .15s;text-align:center}
+.inv.open .invh .ar{transform:rotate(90deg)}
+.invr{padding:0 14px 6px 14px;font-size:12px;color:var(--muted)}
+.invr b{color:var(--ink2);font-weight:600}
+.inv.rs{border-left:4px solid var(--good-bar)}
+.invh .v.g{color:var(--good)}
+.rsbar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--good-bg);color:var(--good);font-size:12.5px;border-top:1px solid var(--line)}
+.rsbar b{font-weight:700}.rsbar span{color:var(--ink2)}
+.rsact{display:flex;gap:8px;align-items:flex-start;padding:8px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.rsact textarea{min-height:50px;font-family:Inter,sans-serif;font-size:13px;flex:3;min-width:220px}
+.rsf{display:flex;flex-direction:column;gap:3px;flex:1;min-width:140px}
+.rsf label{font-size:11.5px;color:var(--muted);font-weight:600}.rsf label small{font-weight:400}
+.rsf input{width:100%}
+.rsb{display:flex;gap:8px;align-self:flex-end}
+.rsbar .rb{display:flex;gap:6px}
+.rsact .rerr{color:var(--leak);font-size:12px;width:100%}
+.btn-s{padding:6px 12px;font-size:12.5px;border-radius:8px}
+.btn-ok{background:var(--good-bar);color:#fff}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--good-bar);color:var(--good)}
+.mini.wide{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mini.res .v{color:var(--good)}
+.gc .rsx{color:var(--good);background:var(--good-bg);border-radius:20px;padding:0 7px;font-weight:600;white-space:nowrap}
+.mini .rb{display:flex;gap:8px;flex-wrap:wrap}
+.dstat.ok .v{color:var(--good)}
+.itms{display:none;border-top:1px solid var(--line);background:var(--soft);padding:6px 14px 10px}
+.inv.open .itms{display:block}
+.itm{display:grid;grid-template-columns:2.2fr repeat(4,minmax(80px,.6fr));gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px;align-items:center}
+.itm:last-child{border-bottom:0}
+.itm .n{font-weight:600}
+.itm .n small{display:block;color:var(--muted);font-weight:400}
+.itm .c{text-align:right;font-variant-numeric:tabular-nums}
+.itm .c small{display:block;color:var(--muted);font-size:10.5px}
+.itm .c.x{color:var(--leak);font-weight:650}
+.itm .c em,.invh .v em{display:block;font-style:normal;font-size:11px;color:var(--muted);font-weight:500}
+.invh .v em{display:inline;margin-left:2px}
+.itm .c.x em{color:var(--leak)}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.tg{font-size:10.5px;font-weight:600;border-radius:20px;padding:1px 8px;background:var(--card);border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.tg.ln{background:#efe9ff;color:#5b3fc4;border-color:transparent}
+.tg.cs{background:var(--good-bg);color:var(--good);border-color:transparent}
+.tg.crt{background:#e6f0ff;color:#1d4fb8;border-color:transparent}
+:root[data-theme="dark"] .tg.ln{background:#2a2147;color:#b9a8ff}
+:root[data-theme="dark"] .tg.crt{background:#16284a;color:#8fb4ff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tg.ln{background:#2a2147;color:#b9a8ff}:root:not([data-theme="light"]) .tg.crt{background:#16284a;color:#8fb4ff}}
+@media (max-width: 700px){
+  #ov{padding:0;align-items:stretch}
+  #md{max-height:100vh;border-radius:0}
+  .cats{grid-template-columns:1fr}
+  .invh{grid-template-columns:1fr 1fr;row-gap:6px}
+  .invh .pr{grid-column:1 / -1}
+  .invh .ar{display:none}
+  .itm{grid-template-columns:1fr 1fr}
+  .itm .n{grid-column:1 / -1}
+  .tbar2 input{width:100%}
+  .mdh .b .hbtn#mdDl{display:none}
+}
+/* tooltip */
+#tip{position:fixed;pointer-events:none;z-index:50;background:#101828;color:#fff;font-size:12.5px;line-height:1.45;padding:8px 10px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:320px;opacity:0;transition:opacity .08s;white-space:pre-line}
+#tip.on{opacity:1}
+
+/* tables */
+.tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tab{padding:9px 12px;border:0;background:transparent;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;border-radius:0;font-size:13px}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .n{display:inline-block;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:0 6px;font-size:11px;margin-left:4px;color:var(--ink2)}
+.tbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap}
+.tbar .l{display:flex;gap:14px;align-items:center;flex-wrap:wrap;flex:1}
+.tbar input[type=search]{max-width:320px}
+.tbar label.chk{display:flex;gap:6px;align-items:center;margin:0;font-size:12.5px;color:var(--ink2);cursor:pointer}
+.tbar span{font-size:12px;color:var(--muted)}
+.tw{overflow:auto;max-height:620px;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}
+th{position:sticky;top:0;background:var(--soft);cursor:pointer;user-select:none;font-weight:600;color:var(--ink2);z-index:1;font-size:12px}
+th:hover{color:var(--accent)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+td.lt{max-width:340px;overflow:hidden;text-overflow:ellipsis}
+td.xx{color:var(--leak);font-weight:650}
+tbody tr:hover td{background:var(--soft)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:650;letter-spacing:.01em}
+.p-bad{background:var(--leak-bg);color:var(--leak)}
+.p-ok{background:var(--good-bg);color:var(--good)}
+.p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-neu{background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.note{font-size:12px;color:var(--muted);margin-top:10px}
+.hide{display:none!important}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:10px 0 30px}
+
+@media (max-width: 900px){
+  .hero,.grid2{grid-template-columns:1fr}
+  .big{font-size:40px}
+}
+@media (max-width: 560px){
+  .br{grid-template-columns:1fr 70px;gap:4px 8px}
+  .br .lb{grid-column:1 / -1}
+  .dr{grid-template-columns:1fr}
+  .daxis{grid-template-columns:1fr}
+  .daxis div:first-child{display:none}
+  .minis{grid-template-columns:1fr 1fr}
+  .mini .v{font-size:20px}
+}
+@media print{
+  body{background:#fff}
+  header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .hbtns,.upl,footer,.tbar2,#ov{display:none!important}
+  .card,.heroL,.mini{box-shadow:none;break-inside:avoid}
+  .strip div,.fl,.dot,.c,.dline,.lg i,.heroL:before{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .grid2{grid-template-columns:1fr 1fr}
+  .hero{grid-template-columns:1.35fr 1fr}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <svg width="38" height="38" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.35)"/><circle cx="16" cy="16" r="9" fill="none" stroke="#93b4ff" stroke-width="1.6"/><circle cx="16" cy="16" r="4" fill="none" stroke="#93b4ff" stroke-width="1.2" opacity=".7"/><path d="M16 16 L27 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="22" cy="20.5" r="2.4" fill="#ff6b6b"/></svg>
+      <div>
+        <h1>Discount Radar</h1>
+        <p>Offer compliance check · actual discount on every bill vs what the offer allows</p>
+      </div>
+    </div>
+    <div class="hbtns">
+      <button class="hbtn hide" id="printBtn" type="button">Print / PDF</button>
+      <button class="hbtn" id="themeBtn" type="button">Theme</button>
+    </div>
+  </div>
+</header>
+
+<main><div class="wrap">
+
+<section class="card upl" id="upl">
+  <div class="ct"><h2>Load files</h2><span class="filesline" id="filesline"></span></div>
+  <div class="uploads">
+    <div class="drop" id="d_sales"><div class="ic">1</div><div><b>Sales statement</b><small>Raw export from the system</small><div class="st">Click or drop .xlsx</div></div><input type="file" accept=".xlsx,.xls,.csv" data-key="sales"></div>
+    <div class="drop" id="d_master"><div class="ic">2</div><div><b>Price &amp; discount master</b><small>One row per offer rule</small><div class="st">Click or drop .xlsx</div></div><input type="file" accept=".xlsx,.xls" data-key="master"></div>
+    <div class="drop" id="d_items"><div class="ic">3</div><div><b>Item list</b><small>Current MRP per item code</small><div class="st">Click or drop .xlsx</div></div><input type="file" accept=".xlsx,.xls,.csv" data-key="items"></div>
+  </div>
+  <div class="privacy"><b>Private by design:</b> files are read inside this browser only and never uploaded.</div>
+
+  <details>
+    <summary>Settings (saved in this browser)</summary>
+    <div class="settings">
+      <div><label>Executives to remove (one per line)</label><textarea id="s_exec" placeholder="One name per line"></textarea></div>
+      <div><label>Branch mapping (Sub branch =&gt; Main branch)</label><textarea id="s_map" placeholder="Outbound@XYZ => APR@ABC"></textarea></div>
+      <div>
+        <label>Keep branches starting with (comma)</label><input type="text" id="s_prefix">
+        <label style="margin-top:10px">Categories in scope (comma)</label><input type="text" id="s_scope">
+        <label style="margin-top:10px">Loan words in Affordability / Scheme (comma)</label><input type="text" id="s_loan">
+        <label style="margin-top:10px">Approval words in remark (comma)</label><input type="text" id="s_appr">
+        <label style="margin-top:10px">CRT allowed only if Affordability / Scheme contains</label><input type="text" id="s_crt">
+      </div>
+      <div>
+        <label>Ignore extra discount up to (Rs, round-off)</label><input type="number" id="s_tol">
+        <label style="margin-top:10px">MacBook Neo extra % if Gripp combo on bill</label><input type="number" step="0.001" id="s_combo">
+        <label style="margin-top:10px">Item List MRP column</label><input type="text" id="s_ilmrp">
+        <div class="actions">
+          <button class="sec" id="expBtn" type="button">Export settings</button>
+          <button class="sec" id="impBtn" type="button">Import settings</button>
+          <button class="sec" id="resetBtn" type="button">Reset</button>
+          <input type="file" id="impFile" accept=".json" class="hide">
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <div class="actions">
+    <button id="runBtn" disabled>Run check</button>
+    <button class="sec hide" id="changeBtn" type="button">Change files / settings</button>
+    <button class="sec hide" id="dlBtn">Download Excel report</button>
+    <span id="msg">Load all 3 files to start.</span>
+  </div>
+</section>
+
+<section id="results" class="hide">
+  <div class="hero">
+    <div class="heroL clk" id="heroCard" title="Click to see leakage by category, product line and payment case">
+      <div class="eyebrow">Discount leakage · beyond offer, no approval, not resolved</div>
+      <div class="big num" id="heroV">₹0</div>
+      <p id="heroP"></p>
+      <span class="period" id="heroD"></span>
+    </div>
+    <div class="minis" id="minis"></div>
+  </div>
+
+
+  <div class="card">
+    <div class="ct"><h2>Stores</h2>
+      <div class="tbar2"><input type="search" id="sq" placeholder="Search store or city..."><span id="scnt"></span></div>
+    </div>
+    <div class="gcards" id="gcards"></div>
+    <div class="note">Click a store → Hardware / Care plans → executive → invoice.</div>
+  </div>
+</section>
+
+</div></main>
+<footer>Discount Radar · runs fully in your browser</footer>
+<div id="tip"></div>
+<div id="ov">
+  <div id="md" role="dialog" aria-modal="true">
+    <div class="mdh">
+      <div class="mdl"><button class="hbtn hide" id="mdBack" type="button">← Back</button><div><div class="crumbs" id="mdC"></div><div class="mdt" id="mdT"></div></div></div>
+      <div class="b"><button class="hbtn" id="mdDl" type="button">Download to Excel</button><button class="hbtn" id="mdX" type="button" aria-label="Close">✕</button></div>
+    </div>
+    <div class="mdb" id="mdB"></div>
+  </div>
+</div>
+
+<script>
+/* ======================= DEFAULT SETTINGS ======================= */
+const DEFAULTS = {
+  exec: [],          // fill in Settings (kept in your browser, not in this file)
+  map: {},           // e.g.  Outbound@XYZ => APR@ABC
+  prefix: "AAR, APP, APR",
+  scope: "APPLE HARDWARE, CARE PLANS",
+  loan: "FIN, CREDIT, EMI, LOAN",
+  tol: 100,
+  combo: 0.01,
+  ilmrp: "Sale Price",
+  appr: "APPRO, APPOV, APRROV, APROV, APP BY",
+  crt: "CRT"
+};
+const LS_KEY = "discountToolSettings_v1";
+
+/* ======================= HELPERS ======================= */
+const $ = id => document.getElementById(id);
+const str = v => v == null ? "" : String(v).trim();
+function num(v){
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return isFinite(v) ? v : null;
+  const n = parseFloat(String(v).replace(/[₹,\s]/g, ""));
+  return isNaN(n) ? null : n;
+}
+const norm = v => str(v).toUpperCase().replace(/\//g, " ").replace(/\s+/g, " ").trim();
+const normCap = v => norm(v).replace(/ /g, "");
+function toDate(v){
+  if (v == null || v === "") return null;
+  if (typeof v === "number"){ const d = XLSX.SSF.parse_date_code(v); return d ? new Date(d.y, d.m-1, d.d) : null; }
+  if (v instanceof Date) return new Date(v.getFullYear(), v.getMonth(), v.getDate());
+  const s = str(v);
+  let m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);
+  if (m) return new Date(+m[3], +m[2]-1, +m[1]);
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  return null;
+}
+const ymd = d => d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "";
+const r0 = x => x == null ? null : Math.round(x);
+const inr = x => x == null || isNaN(x) ? "" : Math.round(x).toLocaleString("en-IN");
+const pct = x => x == null || isNaN(x) ? "" : (x*100).toFixed(2) + "%";
+const sum = (a, f) => a.reduce((s, r) => s + (f(r) || 0), 0);
+
+/* ======================= SETTINGS UI ======================= */
+function loadSettings(){
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(LS_KEY)); } catch(e) {}
+  applySettings(s);
+}
+function applySettings(s){
+  s = Object.assign({}, DEFAULTS, s || {});
+  $("s_exec").value = s.exec.join("\n");
+  $("s_map").value = Object.entries(s.map).map(([a,b]) => `${a} => ${b}`).join("\n");
+  $("s_prefix").value = s.prefix; $("s_scope").value = s.scope; $("s_loan").value = s.loan;
+  $("s_tol").value = s.tol; $("s_combo").value = s.combo; $("s_ilmrp").value = s.ilmrp; $("s_appr").value = s.appr; $("s_crt").value = s.crt;
+}
+function readSettings(){
+  const map = {};
+  $("s_map").value.split("\n").forEach(l => {
+    const p = l.split("=>"); if (p.length === 2 && p[0].trim()) map[p[0].trim()] = p[1].trim();
+  });
+  const s = {
+    exec: $("s_exec").value.split("\n").map(x => x.trim()).filter(Boolean),
+    map, prefix: $("s_prefix").value, scope: $("s_scope").value, loan: $("s_loan").value,
+    tol: num($("s_tol").value) ?? 100, combo: num($("s_combo").value) ?? 0.01,
+    ilmrp: $("s_ilmrp").value.trim() || "Sale Price",
+    appr: $("s_appr").value,
+    crt: $("s_crt").value
+  };
+  try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch(e) {}
+  return s;
+}
+$("expBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify(readSettings(), null, 2)], {type: "application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "discount_tool_settings.json"; a.click();
+};
+$("impBtn").onclick = () => $("impFile").click();
+$("impFile").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const s = JSON.parse(await f.text());
+    try { localStorage.setItem(LS_KEY, JSON.stringify(Object.assign({}, DEFAULTS, s))); } catch(err) {}
+    loadSettings(); applySettings(s); setMsg("Settings imported.");
+  } catch(err){ setMsg("Settings file not valid: " + err.message, true); }
+  e.target.value = "";
+};
+$("resetBtn").onclick = () => { try { localStorage.removeItem(LS_KEY); } catch(e) {} loadSettings(); };
+
+/* theme toggle */
+$("themeBtn").onclick = () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark";
+};
+
+/* ======================= FILE LOADING ======================= */
+const files = {};
+function readBook(file){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = e => { try { res(XLSX.read(new Uint8Array(e.target.result), {type:"array"})); } catch(err){ rej(err); } };
+    fr.onerror = rej;
+    fr.readAsArrayBuffer(file);
+  });
+}
+/* some ERP exports store a wrong sheet size -> rebuild range from real cells */
+function fixRef(ws){
+  let maxR = 0, maxC = 0, any = false;
+  for (const k in ws){
+    if (k[0] === "!") continue;
+    const a = XLSX.utils.decode_cell(k); any = true;
+    if (a.r > maxR) maxR = a.r; if (a.c > maxC) maxC = a.c;
+  }
+  if (any) ws["!ref"] = XLSX.utils.encode_range({s:{r:0, c:0}, e:{r:maxR, c:maxC}});
+}
+function sheetRows(wb, name){
+  const ws = wb.Sheets[name && wb.Sheets[name] ? name : wb.SheetNames[0]];
+  fixRef(ws);
+  // clean header names (extra spaces / line breaks)
+  return XLSX.utils.sheet_to_json(ws, {defval:null, raw:true}).map(r => {
+    const o = {}; for (const k in r) o[k.replace(/\s+/g, " ").trim()] = r[k]; return o;
+  });
+}
+function colIn(rows, want){
+  const keys = Object.keys(rows[0] || {});
+  return keys.find(k => k.toLowerCase() === want.toLowerCase()) || null;
+}
+document.querySelectorAll(".drop input").forEach(inp => {
+  const box = inp.parentElement;
+  ["dragenter","dragover"].forEach(ev => box.addEventListener(ev, () => box.classList.add("over")));
+  ["dragleave","drop"].forEach(ev => box.addEventListener(ev, () => box.classList.remove("over")));
+  inp.addEventListener("change", async () => {
+    const f = inp.files[0]; if (!f) return;
+    const st = box.querySelector(".st");
+    st.textContent = "Reading " + f.name + " ...";
+    try {
+      const wb = await readBook(f);
+      files[inp.dataset.key] = {name: f.name, wb};
+      box.classList.add("done");
+      st.textContent = "✓ " + f.name;
+    } catch(e){
+      box.classList.remove("done"); delete files[inp.dataset.key];
+      st.textContent = "Could not read file: " + e.message;
+    }
+    $("runBtn").disabled = !(files.sales && files.master && files.items);
+    if (!$("runBtn").disabled) setMsg("Ready. Click Run.");
+  });
+});
+function setMsg(t, err){ $("msg").textContent = t; $("msg").className = err ? "err" : ""; }
+
+/* ======================= STEP 1: CLEAN SALES ======================= */
+function cleanSales(raw, S){
+  const log = {rowsInFile: raw.length};
+  let rows = raw.filter(r => !(str(r["TXNName"]).toLowerCase().includes("count") || !str(r["Month"])));
+  log.footer = raw.length - rows.length;
+  const need = ["Branch ID","TXNName","Transaction Type","Item Code","Item_Name","MRP","MRP Discount","Invoice Quantity","Total"];
+  const miss = need.filter(c => !(c in (raw[0] || {})));
+  if (miss.length) throw new Error("Sales file: columns not found -> " + miss.join(", "));
+
+  const ex = new Set(S.exec.map(x => x.toUpperCase()));
+  const removedExec = rows.filter(r => ex.has(str(r["Executive"]).toUpperCase()));
+  rows = rows.filter(r => !ex.has(str(r["Executive"]).toUpperCase()));
+
+  let mapped = 0;
+  rows.forEach(r => {
+    r["Original Branch ID"] = r["Branch ID"];
+    const m = S.map[str(r["Branch ID"])];
+    if (m){ r["Branch ID"] = m; mapped++; }
+  });
+  const pre = S.prefix.split(",").map(x => x.trim()).filter(Boolean);
+  const removedBranch = rows.filter(r => !pre.some(p => str(r["Branch ID"]).startsWith(p)));
+  rows = rows.filter(r => pre.some(p => str(r["Branch ID"]).startsWith(p)));
+
+  rows.forEach(r => {
+    r._qty = num(r["Invoice Quantity"]) ?? 0;
+    r._absQty = Math.abs(r._qty);
+    r._mrp = num(r["MRP"]) ?? 0;
+    r._disc = num(r["MRP Discount"]) ?? 0;
+    r._total = num(r["Total"]) ?? 0;
+    r._tax = num(r["Taxable Amount"]) ?? 0;
+    r._gst = ["CGST 9%","SGST 9%","IGST 18%","IGST 0%"].reduce((s,c) => s + (num(r[c]) || 0), 0);
+    r._date = toDate(r["TXNDate"]);
+    r._type = str(r["Transaction Type"]);
+  });
+  Object.assign(log, {removedExec: removedExec.length, mapped, removedBranch: removedBranch.length, finalRows: rows.length});
+
+  // data checks
+  const chk = [];
+  const add = (name, list) => chk.push({name, rows: list});
+  add("Tax + GST <> Total", rows.filter(r => Math.abs(r._tax + r._gst - r._total) > 1));
+  add("MRP x Qty - Disc <> Total", rows.filter(r => Math.abs(r._mrp * r._absQty - r._disc - r._total) > 1));
+  const ser = rows.filter(r => str(r["Item Type"]) === "Serialized" && r._type === "POS" && str(r["Batch No"]));
+  const cnt = {}; ser.forEach(r => { const k = str(r["Batch No"]); cnt[k] = (cnt[k] || 0) + 1; });
+  add("Same IMEI sold twice", ser.filter(r => cnt[str(r["Batch No"])] > 1));
+  add("Zero Total", rows.filter(r => r._total === 0));
+  add("Discount above 40% of MRP", rows.filter(r => r._mrp && Math.abs(r._disc / (r._mrp * r._absQty)) > 0.4));
+  return {rows, log, chk, removed: removedExec.map(r => ({...r, "Removed Reason":"Executive removed"}))
+            .concat(removedBranch.map(r => ({...r, "Removed Reason":"Branch filter"})))};
+}
+
+/* ======================= MASTER RULES ======================= */
+function loadRules(wb){
+  const rows = sheetRows(wb, "Price Master");
+  if (!rows.length || !("Rule ID" in rows[0])) throw new Error("Master file: sheet 'Price Master' with 'Rule ID' column not found.");
+  const rules = [];
+  rows.forEach(r => {
+    if (str(r["Active (Y/N)"]).toUpperCase() !== "Y") return;
+    if (str(r["MRP Version"]) === "DOA") return;
+    const toks = str(r["Sales Product Family (match)"]).split(";").map(x => x.trim()).filter(Boolean);
+    const colour = str(r["Colour"]).toUpperCase();
+    rules.push({
+      id: str(r["Rule ID"]), product: str(r["Product (as per PDF)"]),
+      fams: toks.filter(t => !t.toUpperCase().startsWith("LOB:")).map(norm),
+      lobs: toks.filter(t => t.toUpperCase().startsWith("LOB:")).map(t => norm(t.slice(4))),
+      cap: str(r["Capacity"]).toUpperCase(),
+      cols: (colour === "" || colour === "ALL") ? [] : colour.split(",").map(norm),
+      ver: str(r["MRP Version"]),
+      type: str(r["Rule Type"]).toUpperCase(),
+      mrp: num(r["MRP (Rs)"]), offer: num(r["Offer Price - Cash (Rs)"]),
+      venus: num(r["Venus Disc %"]) || 0, crt: num(r["CRT Disc %"]) || 0,
+      loan: num(r["Loan Price (Rs)"]), lv: num(r["Loan Venus %"]), lc: num(r["Loan CRT %"]),
+      combo: str(r["Freebies / Remarks"]).toUpperCase().includes("GRIPP COMBO"),
+      vfrom: toDate(r["Valid From"]), vto: toDate(r["Valid To"]),
+      freeWords: str(r["Freebie Item (name contains)"]).toUpperCase().split(",").map(x => x.trim()).filter(Boolean),
+      freeAlt: num(r["Disc % if Freebie NOT taken"])
+    });
+  });
+  return rules;
+}
+
+/* ======================= STEP 3: DISCOUNT CHECK ======================= */
+function careLob(name){
+  const n = str(name).toUpperCase();
+  const kind = n.includes("PROTECT") ? "PROTECT+" : "CARE+";
+  for (const [k, p] of [["IPHONE","IPH"],["IPAD","IPD"],["MACBOOK","MAC"],["MAC ","MAC"],["IMAC","MAC"],["WATCH","W"],["AIRPODS","APD"],["HEADPHONE","APD"]])
+    if (n.includes(k)) return `${p} ${kind}`;
+  return null;
+}
+function capOk(rc, row){
+  if (rc === "" || rc === "ALL") return [true, 0];
+  if (rc.startsWith("CTO")){
+    const name = str(row["Item_Name"]).toUpperCase();
+    const parts = rc.replace("CTO","").trim().split("/").map(x => x.trim());
+    return ["70W", ...parts].every(p => name.replace(/ /g,"").includes(p)) ? [true, 2] : [false, 0];
+  }
+  return [normCap(rc) === normCap(row["Capacity"]), 1];
+}
+let INV_ITEMS = new Map();
+function freebieOnInvoice(rule, row){
+  const names = INV_ITEMS.get(str(row["TXNName"])) || [];
+  return names.some(n => rule.freeWords.every(w => n.includes(w)));
+}
+function allowedPct(rule, row, S){
+  const mrp = row._unitMrp, loan = row._pay === "Loan";
+  if (rule.type === "FIXED"){
+    let price = rule.offer;
+    if (loan && rule.loan) price = rule.loan;
+    if (price == null || !mrp) return 0;
+    return Math.max(mrp - price, 0) / mrp;
+  }
+  // CRT part is allowed only when the bill carries the CRT scheme (Affordability / Scheme text)
+  const crtOk = row._crt;
+  let p = (loan && (rule.lv != null || rule.lc != null)) ? (rule.lv || 0) + (crtOk ? (rule.lc || 0) : 0) : rule.venus + (crtOk ? rule.crt : 0);
+  if (rule.combo && row._combo) p += S.combo;
+  // "freebie OR discount" offer: freebie not on the invoice -> alternative discount allowed
+  if (rule.freeWords.length && rule.freeAlt != null && !freebieOnInvoice(rule, row)) p = Math.max(p, rule.freeAlt);
+  return p;
+}
+function findRule(row, rules, S){
+  const fam = norm(row["Product Family"]), lob = norm(row["LOB"]), col = norm(row["Color"]);
+  const old = row._ver === "Old";
+  let bestScore = -1, ties = [];
+  for (const r of rules){
+    if (r.vfrom && row._date && row._date < r.vfrom) continue;
+    if (r.vto && row._date && row._date > r.vto) continue;
+    const famHit = r.fams.includes(fam), lobHit = r.lobs.includes(lob);
+    if (!famHit && !lobHit) continue;
+    const [ok, capScore] = capOk(r.cap, row); if (!ok) continue;
+    if (r.cols.length && !r.cols.includes(col)) continue;
+    let verScore = 0;
+    if (r.type === "FIXED"){
+      if (r.mrp == null || Math.abs(r.mrp - row._unitMrp) > 1) continue;
+    } else {
+      if (r.ver === "Old" && !old) continue;
+      if ((r.ver === "New" || r.ver === "NPI") && old) continue;
+      verScore = (((r.ver === "Old") === old) && r.ver) ? 4 : 0;
+    }
+    const score = verScore + (famHit ? 2 : 0) + capScore + (r.cols.length ? 1 : 0);
+    if (score > bestScore){ bestScore = score; ties = [r]; }
+    else if (score === bestScore) ties.push(r);
+  }
+  if (!ties.length) return null;
+  return ties.reduce((a, b) => allowedPct(b, row, S) > allowedPct(a, row, S) ? b : a);
+}
+
+function runCheck(sales, rules, ilMap, S){
+  const scope = S.scope.split(",").map(x => x.trim().toUpperCase()).filter(Boolean);
+  const loanW = S.loan.split(",").map(x => x.trim().toUpperCase()).filter(Boolean);
+  const crtW = (S.crt || "").split(",").map(x => x.trim().toUpperCase()).filter(Boolean);
+  const apprW = (S.appr || "").split(",").map(x => x.trim().toUpperCase()).filter(Boolean);
+  INV_ITEMS = new Map();
+  sales.forEach(r => { const t = str(r["TXNName"]); if (!INV_ITEMS.has(t)) INV_ITEMS.set(t, []); INV_ITEMS.get(t).push(str(r["Item_Name"]).toUpperCase()); });
+  const comboInv = new Set(sales.filter(r => str(r["Brand"]).toUpperCase() === "GRIPP" && str(r["Item_Name"]).toUpperCase().includes("COMBO")).map(r => str(r["TXNName"])));
+  const df = sales.filter(r => r._type === "POS" && scope.includes(str(r["Category"]).toUpperCase()));
+
+  df.forEach(r => {
+    if (!str(r["LOB"]) && str(r["Category"]).toUpperCase() === "CARE PLANS") r["LOB"] = careLob(r["Item_Name"]);
+    r._unitMrp = Math.abs(r._mrp);
+    r._mrpValue = r._unitMrp * r._absQty;
+    r._actPct = r._mrpValue > 0 ? r._disc / r._mrpValue : null;
+    const il = ilMap.get(str(r["Item Code"]).toUpperCase());
+    r._ilMrp = il ?? null;
+    if (!(il > 0)) r._ver = "New (not in item list)";
+    else if (r._unitMrp < il - 1) r._ver = "Old";
+    else if (r._unitMrp > il + 1) r._ver = "Above Item List MRP";
+    else r._ver = "New";
+    const t = (str(r["Affordability"]) + " " + str(r["Scheme"])).toUpperCase();
+    r._pay = loanW.some(w => t.includes(w)) ? "Loan" : "Cash";
+    r._crt = crtW.length ? crtW.some(w => t.includes(w)) : true;
+    r._combo = comboInv.has(str(r["TXNName"]));
+
+    const rule = findRule(r, rules, S);
+    if (rule){
+      r._rule = rule; r._allowPct = allowedPct(rule, r, S);
+      r._allow = Math.round(r._mrpValue * r._allowPct);
+      r._extra = Math.round(r._disc - r._allow);
+      r._extraPct = r._mrpValue > 0 ? r._extra / r._mrpValue : null;
+    } else { r._rule = null; r._allowPct = null; r._allow = null; r._extra = null; r._extraPct = null; }
+
+    let res = "Within Offer";
+    if (r._extra != null && r._extra > S.tol) res = "EXTRA DISCOUNT";
+    if (!r._rule) res = "No Rule Found";
+    if (r._ver === "Above Item List MRP") res = "CHECK MRP";
+    const rmk = (str(r["Internal Remark"]) + " " + str(r["Remark"])).toUpperCase();
+    const demo = str(r["Item_Name"]).toUpperCase().includes("DEMO") || str(r["Item Code"]).toUpperCase().startsWith("3P") || rmk.includes("DEMO");
+    if (demo && res === "EXTRA DISCOUNT") res = "DEMO STOCK";
+    if (res === "EXTRA DISCOUNT" && apprW.some(w => rmk.includes(w))) res = "APPROVAL IN REMARK";
+    r._res = res;
+  });
+  return df;
+}
+
+/* ======================= OUTPUT TABLES ======================= */
+function invoiceRows(rows){
+  const m = new Map();
+  rows.forEach(r => {
+    const t = str(r["TXNName"]);
+    if (!m.has(t)) m.set(t, {"Date": ymd(r._date), "Branch ID": r["Branch ID"], "Invoice": t, "Executive": r["Executive"],
+      "Items": 0, "Products": new Set(), "Pay Mode": r._pay, "MRP Value": 0, "Actual Disc (Rs)": 0, "Allowed Disc (Rs)": 0,
+      "Extra Disc (Rs)": 0, "Resolved Amount (Rs)": 0, "Internal Remark": null, "Remark": null,
+      "Resolve Remark": r._rs ? r._rs.remark : "", "Resolved By": r._rs ? r._rs.by : "", "Resolved On": r._rs ? fmtAt(r._rs.at) : ""});
+    const g = m.get(t);
+    g.Items++; g.Products.add(str(r["Product Family"]).replace(/\/\s*$/, "") || str(r["Item_Name"]));
+    g["MRP Value"] += r._mrpValue || 0; g["Actual Disc (Rs)"] += r._disc || 0; g["Allowed Disc (Rs)"] += r._allow || 0; g["Extra Disc (Rs)"] += r._extra || 0; g["Resolved Amount (Rs)"] += r._rsAmt || 0;
+    if (!g["Internal Remark"] && str(r["Internal Remark"])) g["Internal Remark"] = r["Internal Remark"];
+    if (!g["Remark"] && str(r["Remark"])) g["Remark"] = r["Remark"];
+  });
+  return [...m.values()].map(g => ({...g, "Products": [...g.Products].join(", ")})).sort((a, b) => b["Extra Disc (Rs)"] - a["Extra Disc (Rs)"]);
+}
+function lineRow(r){
+  return {
+    "Date": ymd(r._date), "Branch ID": r["Branch ID"], "Invoice": r["TXNName"], "Executive": r["Executive"],
+    "Item Code": r["Item Code"], "Item Name": r["Item_Name"], "LOB": r["LOB"], "Product Family": r["Product Family"],
+    "Capacity": r["Capacity"], "Color": r["Color"], "IMEI / Batch": r["Batch No"], "Pay Mode": r._pay,
+    "Affordability": r["Affordability"], "Gripp Combo": r._combo ? "Yes" : "", "CRT on Bill": r._crt ? "Yes" : "No",
+    "Freebie on Invoice": r._rule && r._rule.freeWords.length ? (freebieOnInvoice(r._rule, r) ? "Yes" : "No") : "", "Qty": r._qty,
+    "Unit MRP": r._unitMrp, "Item List MRP": r._ilMrp, "MRP Version": r._ver, "MRP Value": r._mrpValue,
+    "Actual Disc (Rs)": r._disc, "Actual Disc %": r._actPct,
+    "Rule ID": r._rule ? r._rule.id : "", "Offer Rule (PDF)": r._rule ? r._rule.product : "",
+    "Allowed Disc %": r._allowPct, "Allowed Disc (Rs)": r._allow,
+    "Extra Disc (Rs)": r._extra, "Extra Disc %": r._extraPct, "Bill Total": r._total, "Result": r._res,
+    "Internal Remark": r["Internal Remark"], "Remark": r["Remark"], "Scheme": r["Scheme"],
+    "Resolved Amount (Rs)": r._rsAmt || null, "Resolve Remark": r._rs ? r._rs.remark : "", "Resolved By": r._rs ? r._rs.by : "", "Resolved On": r._rs ? fmtAt(r._rs.at) : ""
+  };
+}
+function groupSumm(df, keys){
+  const m = new Map();
+  df.filter(r => r._rule).forEach(r => {
+    const k = keys.map(f => str(f(r))).join("\u0001");
+    if (!m.has(k)) m.set(k, {keys: keys.map(f => f(r)), lines:0, qty:0, mrp:0, act:0, allow:0, xl:0, x:0, al:0, a:0, rl:0, r:0, inv:new Set(), xinv:new Set()});
+    const g = m.get(k);
+    g.lines++; g.inv.add(str(r["TXNName"])); g.qty += r._qty; g.mrp += r._mrpValue; g.act += r._disc; g.allow += r._allow;
+    if (r._res === "EXTRA DISCOUNT"){ g.xl++; g.x += r._extra; g.xinv.add(str(r["TXNName"])); }
+    if (r._res === "APPROVAL IN REMARK"){ g.al++; g.a += r._extra; }
+    if (r._res === "RESOLVED") g.rl++;
+    g.r += r._rsAmt || 0;
+  });
+  return [...m.values()].sort((a, b) => b.x - a.x);
+}
+function summRows(df, spec){
+  return groupSumm(df, spec.map(s => s[1])).map(g => {
+    const o = {}; spec.forEach((s, i) => o[s[0]] = g.keys[i]);
+    return Object.assign(o, {"Invoices": g.inv.size, "Items": g.lines, "Qty": g.qty, "MRP Value": g.mrp, "Actual Disc (Rs)": g.act,
+      "Allowed Disc (Rs)": g.allow, "Leakage Invoices": g.xinv.size, "Leakage Items": g.xl, "Extra Disc (Rs)": g.x,
+      "Approval-in-Remark Items": g.al, "Approval-in-Remark Disc (Rs)": g.a,
+      "Resolved Items": g.rl, "Resolved Amount (Rs)": g.r,
+      "Actual Disc %": g.mrp ? g.act / g.mrp : null, "Extra Disc %": g.mrp ? g.x / g.mrp : null});
+  });
+}
+
+/* ======================= RESOLVE (saved in this browser + resolve file) ======================= */
+const RS_KEY = "discount_radar_resolved_v1", RS_USER = "discount_radar_user";
+let RESOLVED = {};
+try { RESOLVED = JSON.parse(localStorage.getItem(RS_KEY)) || {}; } catch(e) { RESOLVED = {}; }
+function saveRes(){ try { localStorage.setItem(RS_KEY, JSON.stringify(RESOLVED)); } catch(e) { alert("Could not save in this browser. Download the resolve file to keep it."); } }
+const origX = r => r._extraOrig ?? r._extra;
+function applyRes(df){
+  const byInv = new Map();
+  df.forEach(r => {
+    const t = str(r["TXNName"]);
+    r._rs = RESOLVED[t] || null; r._rsAmt = 0; r._extraOrig = null;
+    if (r._rs && r._res === "EXTRA DISCOUNT"){ if (!byInv.has(t)) byInv.set(t, []); byInv.get(t).push(r); }
+  });
+  byInv.forEach((rows, t) => {
+    const rec = RESOLVED[t], tot = sum(rows, r => r._extra);
+    let left = Math.min(rec.amt == null ? tot : Number(rec.amt) || 0, tot);
+    rows.sort((a, b) => b._extra - a._extra).forEach(r => {
+      const a = Math.max(0, Math.min(left, r._extra)); left -= a;
+      r._extraOrig = r._extra; r._rsAmt = a;
+      if (a >= r._extra) r._res = "RESOLVED"; else r._extra = r._extra - a;
+    });
+  });
+}
+const fmtAt = iso => { const d = new Date(iso); return isNaN(d) ? str(iso) : d.toLocaleString("en-IN", {day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit"}); };
+function resolveRows(){
+  return Object.entries(RESOLVED).map(([t, v]) => ({"Invoice": t, "Store": v.store || "", "Date": v.date || "", "Executive": v.exec || "",
+    "Leakage (Rs)": v.leak ?? null, "Resolved Amount (Rs)": v.amt ?? null, "Resolve Remark": v.remark || "", "Resolved By": v.by || "", "Resolved On": fmtAt(v.at), "_at": v.at}))
+    .sort((a, b) => (b._at || "").localeCompare(a._at || "")).map(({_at, ...o}) => o);
+}
+function downloadRes(){
+  const wb = XLSX.utils.book_new();
+  const rows = Object.entries(RESOLVED).map(([t, v]) => ({"Invoice": t, "Store": v.store || "", "Date": v.date || "", "Executive": v.exec || "",
+    "Leakage (Rs)": v.leak ?? null, "Resolved Amount (Rs)": v.amt ?? null, "Resolve Remark": v.remark || "", "Resolved By": v.by || "", "Resolved At (ISO)": v.at || ""}));
+  XLSX.utils.book_append_sheet(wb, toSheet(rows), "Resolved");
+  const d = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `Discount_Radar_Resolved_${d}.xlsx`);
+}
+function loadResFile(file){
+  readBook(file).then(wb => {
+    const rows = sheetRows(wb, "Resolved");
+    let add = 0, upd = 0;
+    rows.forEach(r => {
+      const t = str(r["Invoice"]), rm = str(r["Resolve Remark"]);
+      if (!t || !rm) return;
+      const at = str(r["Resolved At (ISO)"]) || new Date().toISOString();
+      const old = RESOLVED[t];
+      if (old && (old.at || "") >= at) return;
+      const amt = num(r["Resolved Amount (Rs)"] ?? r["Leakage at resolve (Rs)"]), leak = num(r["Leakage (Rs)"] ?? r["Leakage at resolve (Rs)"]);
+      RESOLVED[t] = {remark: rm, by: str(r["Resolved By"]), at, store: str(r["Store"]), date: str(r["Date"]), exec: str(r["Executive"]), amt: amt ?? null, leak: leak ?? null};
+      old ? upd++ : add++;
+    });
+    saveRes(); refreshAfterRes();
+    alert(`Resolve file loaded: ${add} new, ${upd} updated. Total resolved: ${Object.keys(RESOLVED).length}.`);
+  }).catch(e => alert("Could not read resolve file: " + e.message));
+}
+function refreshAfterRes(){
+  if (!REPORT) return;
+  build(); renderDashboard();
+  if ($("ov").classList.contains("on") && NAV){ const sc = $("mdB").scrollTop; renderModal(); $("mdB").scrollTop = sc; }
+}
+function invLeak(t){
+  return Math.round(sum(REPORT.df.filter(r => str(r["TXNName"]) === t && (r._res === "EXTRA DISCOUNT" || r._res === "RESOLVED")), origX));
+}
+function doResolve(t, remark, by, amt){
+  const rows = REPORT.df.filter(r => str(r["TXNName"]) === t), r0 = rows[0] || {};
+  RESOLVED[t] = {remark, by, at: new Date().toISOString(), store: str(r0["Branch ID"]), date: ymd(r0._date), exec: str(r0["Executive"]),
+    amt: Math.round(amt), leak: invLeak(t)};
+  try { localStorage.setItem(RS_USER, by); } catch(e) {}
+  saveRes(); refreshAfterRes();
+}
+function doReopen(t){
+  if (!confirm(`Reopen invoice ${t}? Its leakage will count again.`)) return;
+  delete RESOLVED[t]; saveRes(); refreshAfterRes();
+}
+
+let REPORT = null;
+function build(){
+  const S = readSettings();
+  if (!S.exec.length && !Object.keys(S.map).length)
+    console.warn("Executive remove list and branch mapping are empty (open Settings).");
+  const salesRaw = sheetRows(files.sales.wb);
+  const {rows, log, chk, removed} = cleanSales(salesRaw, S);
+  const rules = loadRules(files.master.wb);
+  const itemRows = sheetRows(files.items.wb);
+  const cCode = colIn(itemRows, "Item Code"), cMrp = colIn(itemRows, S.ilmrp);
+  const seen = Object.keys(itemRows[0] || {}).slice(0, 25).join(", ") || "(no columns read)";
+  if (!cCode) throw new Error(`Item List: 'Item Code' column not found. Columns read: ${seen}`);
+  if (!cMrp) throw new Error(`Item List: MRP column '${S.ilmrp}' not found. Columns read: ${seen}`);
+  const ilMap = new Map();
+  itemRows.forEach(r => ilMap.set(str(r[cCode]).toUpperCase(), num(r[cMrp])));
+
+  const df = runCheck(rows, rules, ilMap, S);
+  applyRes(df);
+  const matched = df.filter(r => r._rule);
+  const ex = df.filter(r => r._res === "EXTRA DISCOUNT");
+  const mrpV = sum(matched, r => r._mrpValue), exV = sum(ex, r => r._extra);
+  const lines = df.map(lineRow);
+
+  const overview = [
+    ["Sales rows in file", log.rowsInFile], ["Footer/blank rows removed", log.footer],
+    ["Executives removed (rows)", log.removedExec], ["Branch rows mapped to main", log.mapped],
+    ["Branch filter removed (rows)", log.removedBranch], ["Sales rows after cleaning", log.finalRows],
+    ["Active offer rules", rules.length], ["Item list rows", itemRows.length],
+    ["In-scope POS items", df.length], ["Matched with offer rule", matched.length],
+    ["No rule found", df.filter(r => r._res === "No Rule Found").length],
+    ["Check MRP", df.filter(r => r._res === "CHECK MRP").length],
+    ["Within offer", df.filter(r => r._res === "Within Offer").length],
+    ["Demo stock (kept separate)", df.filter(r => r._res === "DEMO STOCK").length],
+    ["Extra with approval in remark (lines)", df.filter(r => r._res === "APPROVAL IN REMARK").length],
+    ["Extra with approval in remark (Rs)", Math.round(sum(df.filter(r => r._res === "APPROVAL IN REMARK"), r => r._extra))],
+    ["Invoices checked", invCount(df)],
+    ["EXTRA DISCOUNT invoices (no approval)", invCount(ex)],
+    ["EXTRA DISCOUNT items (no approval)", ex.length],
+    ["MRP value (matched)", Math.round(mrpV)], ["Actual discount (matched)", Math.round(sum(matched, r => r._disc))],
+    ["Allowed discount (matched)", Math.round(sum(matched, r => r._allow))], ["EXTRA DISCOUNT (Rs)", Math.round(exV)],
+    ["Extra discount % of MRP", mrpV ? (exV / mrpV * 100).toFixed(2) + "%" : "0%"],
+    ["Resolved invoices (full or part)", invCount(df.filter(r => r._rsAmt > 0))],
+    ["Resolved amount (Rs)", Math.round(sum(df, r => r._rsAmt || 0))]
+  ].map(([a, b]) => ({"Metric": a, "Value": b}));
+
+  const dates = rows.map(r => r._date).filter(Boolean).sort((a, b) => a - b);
+  const T = {
+    "Approval in Remark": lines.filter(r => r.Result === "APPROVAL IN REMARK").sort((a, b) => b["Extra Disc (Rs)"] - a["Extra Disc (Rs)"]),
+    "Leakage Invoices": invoiceRows(df.filter(r => r._res === "EXTRA DISCOUNT")),
+    "Resolved Invoices": invoiceRows(df.filter(r => r._rsAmt > 0)).sort((a, b) => b["Resolved Amount (Rs)"] - a["Resolved Amount (Rs)"]),
+    "Extra Discount": lines.filter(r => r.Result === "EXTRA DISCOUNT").sort((a, b) => b["Extra Disc (Rs)"] - a["Extra Disc (Rs)"]),
+    "By Branch": summRows(df, [["Branch ID", r => r["Branch ID"]]]),
+    "By Executive": summRows(df, [["Branch ID", r => r["Branch ID"]], ["Executive", r => r["Executive"]]]),
+    "By Model": summRows(df, [["LOB", r => r["LOB"]], ["Product Family", r => r["Product Family"]]]),
+    "By Offer Rule": summRows(df, [["Rule ID", r => r._rule.id], ["Offer Rule (PDF)", r => r._rule.product]]),
+    "By Date": summRows(df, [["Date", r => ymd(r._date)]]).sort((a, b) => a.Date < b.Date ? -1 : 1),
+    "By Pay Mode": summRows(df, [["Pay Mode", r => r._pay]]),
+    "No Rule / Check": lines.filter(r => ["No Rule Found","CHECK MRP","DEMO STOCK"].includes(r.Result)),
+    "Data Checks": chk.map(c => ({"Check": c.name, "Rows Found": c.rows.length, "Result": c.rows.length ? "REVIEW" : "OK"})),
+    "All Lines": lines,
+    "Overview": overview
+  };
+  const checkDetail = chk.filter(c => c.rows.length).map(c => [c.name, c.rows.map(r => ({
+    "Date": ymd(r._date), "Branch ID": r["Branch ID"], "Invoice": r["TXNName"], "Type": r._type, "Executive": r["Executive"],
+    "Item Code": r["Item Code"], "Item Name": r["Item_Name"], "IMEI / Batch": r["Batch No"], "Qty": r._qty,
+    "MRP": r._mrp, "MRP Discount": r._disc, "Total": r._total,
+    "Internal Remark": r["Internal Remark"], "Remark": r["Remark"]}))]);
+
+  REPORT = {T, df, checkDetail, removed, kpi: {
+    exBranches: new Set(ex.map(r => r["Branch ID"])).size,
+    exInv: invCount(ex), inv: invCount(df), apInv: invCount(df.filter(r => r._res === "APPROVAL IN REMARK")),
+    demo: df.filter(r => r._res === "DEMO STOCK").length, chk: df.filter(r => r._res === "CHECK MRP").length,
+    lines: df.length, matched: matched.length, ex: ex.length, exV, exPct: mrpV ? exV / mrpV : 0,
+    noRule: df.filter(r => r._res === "No Rule Found").length,
+    ap: df.filter(r => r._res === "APPROVAL IN REMARK").length,
+    apV: sum(df.filter(r => r._res === "APPROVAL IN REMARK"), r => r._extra), branches: new Set(rows.map(r => r["Branch ID"])).size,
+    rsInv: invCount(df.filter(r => r._rsAmt > 0)), rsV: sum(df, r => r._rsAmt || 0),
+    from: ymd(dates[0]), to: ymd(dates[dates.length-1]), act: sum(matched, r => r._disc)
+  }};
+}
+
+/* ======================= DASHBOARD ======================= */
+const esc = v => String(v ?? "").replace(/[&<>"]/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[s]));
+function lakh(x){
+  if (x == null || isNaN(x)) return "₹0";
+  const a = Math.abs(x);
+  if (a >= 1e7) return "₹" + (x / 1e7).toFixed(2) + " Cr";
+  if (a >= 1e5) return "₹" + (x / 1e5).toFixed(2) + " L";
+  return "₹" + inr(x);
+}
+const rs = x => "₹" + inr(x);
+const items = n => `${inr(n)} item${n === 1 ? "" : "s"}`;
+const invs = n => `${inr(n)} invoice${n === 1 ? "" : "s"}`;
+const invCount = rows => new Set(rows.map(r => str(r["TXNName"]))).size;
+const niceDate = s => { if (!s) return ""; const d = new Date(s + "T00:00:00"); return d.toLocaleDateString("en-IN", {day:"numeric", month:"short", year:"numeric"}); };
+
+
+/* ---------- store cards & drill-down modal ---------- */
+const famName = f => str(f).replace(/\/\s*$/, "").trim() || "Other";
+const CATS = {hw: {label: "Hardware", icon: "🖥️", test: r => str(r["Category"]).toUpperCase() !== "CARE PLANS"},
+              care: {label: "Care plans", icon: "🛡️", test: r => str(r["Category"]).toUpperCase() === "CARE PLANS"}};
+function stat(rows){
+  const ex = rows.filter(r => r._res === "EXTRA DISCOUNT"), ap = rows.filter(r => r._res === "APPROVAL IN REMARK"), rv = rows.filter(r => r._rsAmt > 0);
+  return {n: rows.length, inv: invCount(rows), x: sum(ex, r => r._extra), xn: ex.length, xinv: invCount(ex), r: sum(rv, r => r._rsAmt), rinv: invCount(rv),
+          a: sum(ap, r => r._extra), an: ap.length, ainv: invCount(ap), act: sum(rows, r => r._disc || 0)};
+}
+function statsBox(st){
+  return `<div class="dstats">
+    <div class="dstat bad"><div class="l">Leakage</div><div class="v num">${rs(st.x)}</div></div>
+    <div class="dstat"><div class="l">Invoices with leakage</div><div class="v num">${inr(st.xinv)} <small style="font-size:12px;color:var(--muted);font-weight:500">${items(st.xn)}</small></div></div>
+    <div class="dstat"><div class="l">Invoices checked</div><div class="v num">${inr(st.inv)}</div></div>
+    <div class="dstat"><div class="l">Discount given</div><div class="v num">${lakh(st.act)}</div></div>
+    ${st.r ? `<div class="dstat ok"><div class="l">Resolved</div><div class="v num">${lakh(st.r)} <small style="font-size:12px;font-weight:500">${invs(st.rinv)}</small></div></div>` : ""}
+    <div class="dstat ${st.a ? "warn" : ""}"><div class="l">Approval noted</div><div class="v num">${st.a ? lakh(st.a) : "–"}${st.a ? ` <small style="font-size:12px;font-weight:500">${invs(st.ainv)}</small>` : ""}</div></div>
+  </div>`;
+}
+
+/* level 0: all stores */
+let STORES = [];
+function renderCards(){
+  const tot = REPORT.kpi.exV || 1;
+  const m = new Map();
+  REPORT.df.forEach(r => { const k = str(r["Branch ID"]); if (!m.has(k)) m.set(k, {key: k, city: str(r["Branch City"]), rows: []}); m.get(k).rows.push(r); });
+  STORES = [...m.values()].map(g => ({...g, st: stat(g.rows)})).sort((a, b) => b.st.x - a.st.x || b.st.a - a.st.a || a.key.localeCompare(b.key));
+  const q = ($("sq").value || "").trim().toLowerCase();
+  const list = q ? STORES.filter(g => (g.key + " " + g.city).toLowerCase().includes(q)) : STORES;
+  const leaking = STORES.filter(g => g.st.x > 0).length;
+  $("scnt").textContent = `${leaking} of ${STORES.length} stores with leakage`;
+  let rank = 0;
+  $("gcards").innerHTML = list.length ? list.map(g => {
+    const st = g.st, ok = !st.x; if (!ok) rank = STORES.indexOf(g) + 1;
+    return `<button class="gc ${ok ? "ok" : ""}" data-k="${esc(g.key)}">
+      ${ok ? `<span class="rk" style="color:var(--good)">✓</span>` : `<span class="rk">#${STORES.indexOf(g) + 1}</span>`}
+      <span class="nm">${esc(g.key)}</span><span class="sb">${esc(g.city)}</span>
+      <span class="am num">${ok ? "No leakage" : lakh(st.x)}</span>
+      <span class="mt">${ok ? `${invs(st.inv)} checked` : `<b>${invs(st.xinv)}</b> with leakage · ${invs(st.inv)} checked`}</span>
+      <span class="sh"><i style="width:${Math.max(st.x / tot * 100, st.x ? 1.5 : 0).toFixed(1)}%"></i></span>
+      <span class="ft"><span>${ok ? "within offer" : (st.x / tot * 100).toFixed(1) + "% of total leakage"}</span>${st.a ? `<span class="ap">+${lakh(st.a)} approval</span>` : ""}${st.r ? `<span class="rsx">✓ ${lakh(st.r)} resolved</span>` : ""}</span>
+    </button>`;
+  }).join("") : `<div class="empty">No store matches.</div>`;
+  $("gcards").querySelectorAll(".gc").forEach(b => b.onclick = () => openModal({store: b.dataset.k}));
+}
+$("sq").addEventListener("input", () => renderCards());
+
+/* modal navigation: {store} -> {store, cat} -> {store, cat, exec} ; or {list: ...} for KPI boxes */
+let NAV = null, MD_ROWS = [], MD_NAME = "";
+function scopeRows(n){
+  let rows = REPORT.df.filter(r => str(r["Branch ID"]) === n.store);
+  if (n.cat) rows = rows.filter(CATS[n.cat].test);
+  if (n.exec) rows = rows.filter(r => str(r["Executive"]) === n.exec);
+  return rows;
+}
+function crumbs(n){
+  const parts = [];
+  if (n.all){
+    const link = (o, t) => `<a data-go='${esc(JSON.stringify(o))}'>${esc(t)}</a>`;
+    parts.push(link({all: 1}, "All leakage"));
+    if (n.cat) parts.push(n.pay ? link({all: 1, cat: n.cat}, CATS[n.cat].label) : `<span>${CATS[n.cat].label}</span>`);
+    if (n.pay) parts.push(n.lob ? link({all: 1, cat: n.cat, pay: n.pay}, PAYS[n.pay]) : `<span>${esc(PAYS[n.pay])}</span>`);
+    if (n.lob) parts.push(`<span>${esc(lobName(n.lob))}</span>`);
+    return parts.join(" › ");
+  }
+  if (n.list) return "";
+  parts.push(`<a data-go='${esc(JSON.stringify({store: n.store}))}'>${esc(n.store)}</a>`);
+  if (n.cat) parts.push(`<a data-go='${esc(JSON.stringify({store: n.store, cat: n.cat}))}'>${CATS[n.cat].label}</a>`);
+  if (n.exec) parts.push(`<span>${esc(n.exec)}</span>`);
+  return parts.join(" › ");
+}
+const pctOf = (a, b) => b ? (a / b * 100).toFixed(1) + "%" : "";
+function payChip(r){
+  return `<span class="tg ${r._pay === "Loan" ? "ln" : "cs"}">${r._pay}${r._pay === "Loan" && str(r["Affordability"]) ? " · " + esc(str(r["Affordability"]).split(",")[0]) : ""}</span>` +
+         `<span class="tg ${r._crt ? "crt" : ""}">${r._crt ? "CRT applied" : "No CRT"}</span>`;
+}
+function basis(r){
+  const u = r._rule; if (!u) return "";
+  if (u.type === "FIXED"){
+    const loanP = r._pay === "Loan" && u.loan;
+    return `Offer price ${rs(loanP ? u.loan : u.offer)}${loanP ? " (loan)" : ""}`;
+  }
+  const loan = r._pay === "Loan" && (u.lv != null || u.lc != null);
+  const v = loan ? (u.lv || 0) : u.venus, c = loan ? (u.lc || 0) : u.crt;
+  const parts = [`Venus ${(v * 100).toFixed(0)}%`];
+  if (c) parts.push(r._crt ? `CRT ${(c * 100).toFixed(0)}%` : `CRT ${(c * 100).toFixed(0)}% not applied`);
+  let t = parts.join(" + ");
+  if (u.combo && r._combo) t += " + 1% Gripp combo";
+  if (u.freeWords && u.freeWords.length && u.freeAlt != null && !freebieOnInvoice(u, r)) t = `No freebie taken → up to ${(u.freeAlt * 100).toFixed(0)}%`;
+  if (u.type === "ON MRP" && t.startsWith("Venus 0%")) t = "On MRP (no discount)";
+  return t + (loan ? " (loan)" : "");
+}
+function invoiceCards(rows){
+  // rows: all rows in scope; show invoices that have leakage or approval
+  const show = rows.filter(r => r._res === "EXTRA DISCOUNT" || r._res === "RESOLVED" || r._res === "APPROVAL IN REMARK" || r._res === "No Rule Found" || r._res === "DEMO STOCK" || r._res === "CHECK MRP");
+  const m = new Map();
+  show.forEach(r => { const t = str(r["TXNName"]); if (!m.has(t)) m.set(t, []); m.get(t).push(r); });
+  const list = [...m.entries()].map(([t, rs_]) => {
+    const all = REPORT.df.filter(r => str(r["TXNName"]) === t);   // every in-scope item of that invoice
+    return {t, rows: rs_, all, x: sum(rs_.filter(r => r._res === "EXTRA DISCOUNT"), r => r._extra), a: sum(rs_.filter(r => r._res === "APPROVAL IN REMARK"), r => r._extra),
+      rv: sum(rs_, r => r._rsAmt || 0), rs: rs_[0]._rs, tot: invLeak(t), xAll: sum(all.filter(r => r._res === "EXTRA DISCOUNT"), r => r._extra), rvAll: sum(all, r => r._rsAmt || 0)};
+  }).sort((p, q) => q.x - p.x || q.rv - p.rv || q.a - p.a);
+  if (!list.length) return `<div class="empty">No invoice with leakage here – everything is within the offer.</div>`;
+  return `<div class="invs">${list.map(v => {
+    const r0 = v.rows[0], kind = v.x ? "lk" : v.rv ? "rs" : v.a ? "ap" : "";
+    const prods = [...new Set(v.rows.map(r => famName(r["Product Family"]) || str(r["Item_Name"])))].join(", ");
+    const ir = str(r0["Internal Remark"]), rm = str(r0["Remark"]);
+    return `<div class="inv ${kind}">
+      <div class="invh">
+        <div class="no">${esc(v.t)}<span class="store">🏬 ${esc(r0["Branch ID"])}${str(r0["Branch City"]) ? ` <i>· ${esc(r0["Branch City"])}</i>` : ""}</span><small>${niceDate(ymd(r0._date))} · ${esc(r0["Executive"])}</small><span class="tags">${payChip(r0)}</span></div>
+        <div class="pr">${esc(prods)}<small>${items(v.rows.length)} flagged${v.all.length > v.rows.length ? ` · ${v.all.length} on invoice` : ""}</small></div>
+        <div><div class="k">Discount given</div><div class="v">${rs(sum(v.rows, r => r._disc || 0))} <em>${pctOf(sum(v.rows, r => r._disc || 0), sum(v.rows, r => r._mrpValue || 0))}</em></div></div>
+        <div><div class="k">Allowed</div><div class="v">${rs(sum(v.rows, r => r._allow || 0))} <em>${pctOf(sum(v.rows, r => r._allow || 0), sum(v.rows, r => r._mrpValue || 0))}</em></div></div>
+        <div><div class="k">${v.x ? "Leakage" : v.rv ? "Resolved" : v.a ? "Approval noted" : "Status"}</div><div class="v ${v.x ? "x" : v.rv ? "g" : ""}">${v.x ? rs(v.x) : v.rv ? "✓ " + rs(v.rv) : v.a ? rs(v.a) : esc(RES_LABEL[r0._res] || r0._res)}</div>${v.x && v.rv ? `<div class="k" style="color:var(--good)">✓ ${rs(v.rv)} resolved</div>` : ""}</div>
+        <div class="ar">›</div>
+      </div>
+      ${ir || rm ? `<div class="invr">${ir ? `<b>Internal remark:</b> ${esc(ir)} ` : ""}${rm ? `<b>Remark:</b> ${esc(rm)}` : ""}</div>` : ""}
+      ${v.rv && v.rs ? `<div class="rsbar"><div>✓ <b>${v.xAll ? `Partly resolved: ${rs(v.rvAll)} of ${rs(v.tot)}` : `Resolved ${rs(v.rvAll)}`}</b>${v.rs.by ? ` by ${esc(v.rs.by)}` : ""} · ${esc(fmtAt(v.rs.at))}${v.xAll ? ` · <b style="color:var(--leak)">${rs(v.xAll)} still leakage</b>` : ""}<br><span>${esc(v.rs.remark)}</span></div>
+        <div class="rb"><button class="btn-s btn-ghost" type="button" data-rsedit="${esc(v.t)}">Edit</button><button class="btn-s btn-ghost" type="button" data-reopen="${esc(v.t)}">Reopen</button></div></div>
+        <div class="rsact hide" data-t="${esc(v.t)}" data-tot="${Math.round(v.tot)}"></div>` : ""}
+      ${v.x && !v.rv ? `<div class="rsact" data-t="${esc(v.t)}" data-tot="${Math.round(v.tot)}"><button class="btn-s btn-ghost" type="button" data-rsopen>✓ Resolve with remark</button></div>` : ""}
+      <div class="itms">${v.all.map(r => `<div class="itm">
+          <div class="n">${esc(r["Item_Name"])}<small>${esc(r._rule ? r._rule.product : "No offer rule")} · ${esc(RES_LABEL[r._res] || r._res)}</small>
+            <span class="tags">${payChip(r)}${r._rule ? `<span class="tg">${esc(basis(r))}</span>` : ""}</span></div>
+          <div class="c"><small>MRP</small>${rs(r._unitMrp)}</div>
+          <div class="c"><small>Given</small>${rs(r._disc)}<em>${pctOf(r._disc, r._mrpValue)}</em></div>
+          <div class="c"><small>Allowed</small>${r._allow == null ? "–" : rs(r._allow)}<em>${r._allowPct == null ? "" : (r._allowPct * 100).toFixed(1) + "%"}</em></div>
+          <div class="c ${r._res === "EXTRA DISCOUNT" ? "x" : ""}"><small>Extra</small>${origX(r) > 0 ? rs(origX(r)) : "–"}<em>${r._rsAmt ? `<span style="color:var(--good)">✓ ${rs(r._rsAmt)} resolved</span>` : origX(r) > 0 ? pctOf(origX(r), r._mrpValue) : ""}</em></div>
+        </div>`).join("")}</div>
+    </div>`;
+  }).join("")}</div>`;
+}
+/* ---------- "All leakage" drill-down: category -> product line -> cash/loan + CRT -> invoices ---------- */
+const LOB_NAMES = {"IPHONE": "iPhone", "IPAD": "iPad", "MAC": "Mac", "WATCH": "Watch", "AIRPODS": "AirPods",
+  "IPH CARE+": "iPhone Care+", "MAC CARE+": "Mac Care+", "IPD CARE+": "iPad Care+", "W CARE+": "Watch Care+", "APD CARE+": "AirPods Care+",
+  "IPH PROTECT+": "iPhone Protect+", "MAC PROTECT+": "Mac Protect+", "IPD PROTECT+": "iPad Protect+", "W PROTECT+": "Watch Protect+", "APD PROTECT+": "AirPods Protect+"};
+const LOB_ICON = {"IPHONE": "📱", "IPAD": "📲", "MAC": "💻", "WATCH": "⌚", "AIRPODS": "🎧"};
+const LOB_ORDER = ["IPHONE", "IPAD", "MAC", "WATCH", "AIRPODS"];
+const lobKey = r => str(r["LOB"]).toUpperCase() || "OTHER";
+const lobName = k => LOB_NAMES[k] || k.charAt(0) + k.slice(1).toLowerCase();
+const PAYS = {"Cash|0": "Cash · No CRT", "Cash|1": "Cash · CRT", "Loan|0": "Loan · No CRT", "Loan|1": "Loan · CRT"};
+const payKey = r => `${r._pay}|${r._crt ? 1 : 0}`;
+function allScope(n){
+  let rows = REPORT.df;
+  if (n.cat) rows = rows.filter(CATS[n.cat].test);
+  if (n.lob) rows = rows.filter(r => lobKey(r) === n.lob);
+  if (n.pay) rows = rows.filter(r => payKey(r) === n.pay);
+  return rows;
+}
+function groupCards(groups, tot, attr, icon){
+  return `<div class="gcards">` + groups.map((g, i) => `<button class="gc ${g.st.x ? "" : "ok"}" ${attr}="${esc(g.key)}">
+      ${g.st.x ? `<span class="rk">#${i + 1}</span>` : `<span class="rk" style="color:var(--good)">✓</span>`}
+      <span class="nm">${icon ? icon(g.key) + " " : ""}${esc(g.label)}</span><span class="sb">${invs(g.st.inv)} checked · ${items(g.st.n)}</span>
+      <span class="am num">${g.st.x ? lakh(g.st.x) : "No leakage"}</span>
+      <span class="mt">${g.st.x ? `<b>${invs(g.st.xinv)}</b> with leakage · ${items(g.st.xn)}` : "within offer"}</span>
+      <span class="sh"><i style="width:${Math.max(g.st.x / (tot || 1) * 100, g.st.x ? 1.5 : 0).toFixed(1)}%"></i></span>
+      <span class="ft"><span>${g.st.x ? (g.st.x / (tot || 1) * 100).toFixed(0) + "% of this leakage" : ""}</span>${g.st.a ? `<span class="ap">+${lakh(g.st.a)} approval</span>` : ""}${g.st.r ? `<span class="rsx">✓ ${lakh(g.st.r)} resolved</span>` : ""}</span>
+    </button>`).join("") + `</div>`;
+}
+function renderAll(n){
+  const rows = allScope(n), st = stat(rows);
+  MD_ROWS = rows;
+  if (!n.cat){
+    $("mdT").textContent = "All leakage"; MD_NAME = "All_leakage";
+    return statsBox(st) + `<div class="lvl">Choose a category</div><div class="cats">` +
+      Object.entries(CATS).map(([k, c]) => {
+        const cr = rows.filter(c.test), cs = stat(cr);
+        const lobs = new Set(cr.filter(r => r._res === "EXTRA DISCOUNT").map(lobKey)).size;
+        return `<button class="cat ${cr.length ? "" : "dis"}" data-acat="${k}" ${cr.length ? "" : "disabled"}>
+          <div class="ch"><span class="ci">${c.icon}</span>${k === "hw" ? "Apple hardware" : c.label}</div>
+          <div class="am num ${cs.x ? "" : "z"}">${cs.x ? rs(cs.x) : "No leakage"}</div>
+          <div class="mt">${cs.x ? `<b>${invs(cs.xinv)}</b> with leakage · ${items(cs.xn)} · ` : ""}${invs(cs.inv)} checked</div>
+          <div class="ft">${lobs ? `<span class="chip">${lobs} product line${lobs === 1 ? "" : "s"} with leakage</span>` : ""}${cs.a ? `<span class="chip w">${lakh(cs.a)} approval · ${invs(cs.ainv)}</span>` : ""}<span class="chip">Discount given ${lakh(cs.act)}</span></div>
+          <div class="go">See cash / loan →</div>
+        </button>`;
+      }).join("") + `</div>`;
+  }
+  if (!n.pay){
+    $("mdT").textContent = (n.cat === "hw" ? "Apple hardware" : "Care plans") + " · cash / loan"; MD_NAME = "All_" + CATS[n.cat].label;
+    const groups = Object.entries(PAYS).map(([k, label]) => ({key: k, label, st: stat(rows.filter(r => payKey(r) === k))}))
+      .filter(g => g.st.n).sort((a, b) => b.st.x - a.st.x);
+    return statsBox(st) + `<div class="lvl">Payment case <span>cash or loan, with or without CRT on the bill</span></div>` +
+      groupCards(groups, st.x, "data-apay", k => k.startsWith("Loan") ? "🏦" : "💵");
+  }
+  if (!n.lob){
+    $("mdT").textContent = `${PAYS[n.pay]} · product lines`; MD_NAME = `All_${CATS[n.cat].label}_${PAYS[n.pay]}`;
+    const m = new Map(); rows.forEach(r => { const k = lobKey(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); });
+    const groups = [...m.entries()].map(([k, rr]) => ({key: k, label: lobName(k), st: stat(rr)}))
+      .sort((a, b) => b.st.x - a.st.x || (LOB_ORDER.indexOf(a.key) + 99 * (LOB_ORDER.indexOf(a.key) < 0)) - (LOB_ORDER.indexOf(b.key) + 99 * (LOB_ORDER.indexOf(b.key) < 0)));
+    return statsBox(st) + `<div class="lvl">Product lines <span>${groups.filter(g => g.st.x).length} with leakage</span></div>` +
+      groupCards(groups, st.x, "data-alob", k => LOB_ICON[k] || (n.cat === "care" ? "🛡️" : "📦"));
+  }
+  $("mdT").textContent = `${lobName(n.lob)} · ${PAYS[n.pay]}`; MD_NAME = `All_${lobName(n.lob)}_${PAYS[n.pay]}`;
+  return statsBox(st) + `<div class="lvl">Invoices <span>click an invoice to see its items</span></div>` + invoiceCards(rows);
+}
+function renderModal(){
+  const n = NAV, B = $("mdB");
+  $("mdBack").classList.toggle("hide", !(n.cat || n.exec || n.lob || n.pay));
+  $("mdC").innerHTML = crumbs(n);
+  let html = "";
+  if (n.all){
+    html = renderAll(n);
+  } else if (n.list){                                  // KPI box lists
+    const LISTS = {appr: ["Approval noted in remark", r => r._res === "APPROVAL IN REMARK"],
+      attn: ["Needs attention", r => ["No Rule Found","DEMO STOCK","CHECK MRP"].includes(r._res)],
+      res: ["Resolved invoices", r => r._rsAmt > 0]};
+    const [title, f] = LISTS[n.list]; n.rows = REPORT.df.filter(f);
+    $("mdT").textContent = title;
+    MD_ROWS = n.rows; MD_NAME = title;
+    html = statsBox(stat(n.rows)) + `<div class="lvl">Invoices <span>click an invoice to see its items</span></div>` + invoiceCards(n.rows);
+  } else {
+    const rows = scopeRows(n); MD_ROWS = rows; const st = stat(rows);
+    if (!n.cat){                                // level 1: store -> categories
+      $("mdT").textContent = n.store; MD_NAME = n.store;
+      const city = str((rows[0] || {})["Branch City"]);
+      html = statsBox(st) + `<div class="lvl">Choose a category ${city ? `<span>${esc(city)}</span>` : ""}</div><div class="cats">` +
+        Object.entries(CATS).map(([k, c]) => {
+          const cr = rows.filter(c.test), cs = stat(cr), execs = new Set(cr.filter(r => r._res === "EXTRA DISCOUNT").map(r => str(r["Executive"]))).size;
+          return `<button class="cat ${cr.length ? "" : "dis"}" data-cat="${k}" ${cr.length ? "" : "disabled"}>
+            <div class="ch"><span class="ci">${c.icon}</span>${c.label}</div>
+            <div class="am num ${cs.x ? "" : "z"}">${cs.x ? rs(cs.x) : (cr.length ? "No leakage" : "No sales")}</div>
+            <div class="mt">${cs.x ? `<b>${invs(cs.xinv)}</b> with leakage · ${items(cs.xn)}` : ""} ${cr.length ? `· ${invs(cs.inv)} checked` : ""}</div>
+            <div class="ft">${execs ? `<span class="chip">${execs} executive${execs === 1 ? "" : "s"} involved</span>` : ""}${cs.a ? `<span class="chip w">${lakh(cs.a)} approval · ${invs(cs.ainv)}</span>` : ""}<span class="chip">Discount given ${lakh(cs.act)}</span></div>
+            ${cr.length ? `<div class="go">See executives →</div>` : ""}
+          </button>`;
+        }).join("") + `</div>`;
+    } else if (!n.exec){                        // level 2: executives
+      $("mdT").textContent = `${CATS[n.cat].label} · executives`; MD_NAME = `${n.store}_${CATS[n.cat].label}`;
+      const m = new Map(); rows.forEach(r => { const e = str(r["Executive"]) || "–"; if (!m.has(e)) m.set(e, []); m.get(e).push(r); });
+      const ex = [...m.entries()].map(([e, rr]) => ({e, st: stat(rr)})).sort((a, b) => b.st.x - a.st.x || b.st.a - a.st.a || a.e.localeCompare(b.e));
+      const tot = st.x || 1;
+      html = statsBox(st) + `<div class="lvl">Executives <span>${ex.filter(e => e.st.x).length} with leakage · ${ex.length} billed</span></div><div class="gcards">` +
+        ex.map((e, i) => `<button class="gc ${e.st.x ? "" : "ok"}" data-exec="${esc(e.e)}">
+          ${e.st.x ? `<span class="rk">#${i + 1}</span>` : `<span class="rk" style="color:var(--good)">✓</span>`}
+          <span class="nm">${esc(e.e)}</span><span class="sb">${invs(e.st.inv)} billed</span>
+          <span class="am num">${e.st.x ? lakh(e.st.x) : "No leakage"}</span>
+          <span class="mt">${e.st.x ? `<b>${invs(e.st.xinv)}</b> with leakage · ${items(e.st.xn)}` : "within offer"}</span>
+          <span class="sh"><i style="width:${Math.max(e.st.x / tot * 100, e.st.x ? 1.5 : 0).toFixed(1)}%"></i></span>
+          <span class="ft"><span>${e.st.x ? (e.st.x / tot * 100).toFixed(0) + "% of this leakage" : ""}</span>${e.st.a ? `<span class="ap">+${lakh(e.st.a)} approval</span>` : ""}${e.st.r ? `<span class="rsx">✓ ${lakh(e.st.r)} resolved</span>` : ""}</span>
+        </button>`).join("") + `</div>`;
+    } else {                                    // level 3: invoices
+      $("mdT").textContent = n.exec; MD_NAME = `${n.store}_${n.exec}`;
+      html = statsBox(st) + `<div class="lvl">Invoices <span>click an invoice to see its items</span></div>` + invoiceCards(rows);
+    }
+  }
+  B.innerHTML = html; B.scrollTop = 0;
+  B.querySelectorAll(".cat[data-cat]").forEach(b => b.onclick = () => go({store: n.store, cat: b.dataset.cat}));
+  B.querySelectorAll(".cat[data-acat]").forEach(b => b.onclick = () => go({all: 1, cat: b.dataset.acat}));
+  B.querySelectorAll(".gc[data-apay]").forEach(b => b.onclick = () => go({all: 1, cat: n.cat, pay: b.dataset.apay}));
+  B.querySelectorAll(".gc[data-alob]").forEach(b => b.onclick = () => go({all: 1, cat: n.cat, pay: n.pay, lob: b.dataset.alob}));
+  B.querySelectorAll(".gc[data-exec]").forEach(b => b.onclick = () => go({store: n.store, cat: n.cat, exec: b.dataset.exec}));
+  B.querySelectorAll(".invh").forEach(h => h.onclick = () => h.parentElement.classList.toggle("open"));
+  B.querySelectorAll("[data-reopen]").forEach(b => b.onclick = () => doReopen(b.dataset.reopen));
+  const openForm = box => {
+    const t = box.dataset.t, tot = Number(box.dataset.tot) || 0, cur = RESOLVED[t];
+    let me = ""; try { me = localStorage.getItem(RS_USER) || ""; } catch(e) {}
+    box.classList.remove("hide");
+    box.innerHTML = `<textarea placeholder="Resolve remark: why this discount is ok, or action taken (e.g. VP approved on call, amount recovered from executive)">${cur ? esc(cur.remark) : ""}</textarea>
+      <div class="rsf"><label>Amount resolved (₹) <small>leakage ${rs(tot)}</small></label><input type="number" min="1" max="${tot}" step="1" value="${cur && cur.amt != null ? Math.min(cur.amt, tot) : tot}" data-amt></div>
+      <div class="rsf"><label>Your name</label><input type="text" placeholder="Your name" value="${esc(cur && cur.by ? cur.by : me)}" data-by></div>
+      <div class="rsb"><button class="btn-s btn-ok" type="button" data-save>${cur ? "Save" : "Mark resolved"}</button><button class="btn-s btn-ghost" type="button" data-cancel>Cancel</button></div>
+      <div class="rerr"></div>`;
+    const ta = box.querySelector("textarea"), am = box.querySelector("[data-amt]"), nm = box.querySelector("[data-by]"); ta.focus();
+    box.querySelector("[data-cancel]").onclick = () => renderModal();
+    box.querySelector("[data-save]").onclick = () => {
+      const remark = ta.value.trim(), by = nm.value.trim(), amt = Number(am.value), err = box.querySelector(".rerr");
+      if (remark.length < 3){ err.textContent = "Please write a remark."; ta.focus(); return; }
+      if (!(amt > 0) || amt > tot){ err.textContent = `Amount must be between ₹1 and ${rs(tot)}.`; am.focus(); return; }
+      if (!by){ err.textContent = "Please write your name."; nm.focus(); return; }
+      doResolve(t, remark, by, amt);
+    };
+  };
+  B.querySelectorAll(".rsact [data-rsopen]").forEach(b => b.onclick = () => openForm(b.parentElement));
+  B.querySelectorAll("[data-rsedit]").forEach(b => b.onclick = () => openForm(b.closest(".inv").querySelector(".rsact")));
+  $("mdC").querySelectorAll("a[data-go]").forEach(a => a.onclick = () => go(JSON.parse(a.dataset.go)));
+}
+function go(n){ NAV = n; renderModal(); }
+function openModal(n){ go(n); $("ov").classList.add("on"); document.body.style.overflow = "hidden"; }
+function closeModal(){ $("ov").classList.remove("on"); document.body.style.overflow = ""; }
+const closeDrawer = closeModal;
+$("ov").addEventListener("click", e => { if (e.target === $("ov")) closeModal(); });
+$("mdX").onclick = closeModal;
+$("mdBack").onclick = () => { const n = NAV;
+  if (n.all){ if (n.lob) go({all: 1, cat: n.cat, pay: n.pay}); else if (n.pay) go({all: 1, cat: n.cat}); else if (n.cat) go({all: 1}); return; }
+  if (n.exec) go({store: n.store, cat: n.cat}); else if (n.cat) go({store: n.store}); };
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+$("mdDl").onclick = () => {
+  const rows = MD_ROWS.filter(r => r._res !== "Within Offer").length ? MD_ROWS : MD_ROWS;
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, toSheet(invoiceRows(rows.filter(r => r._res === "EXTRA DISCOUNT"))), "Leakage invoices");
+  if (rows.some(r => r._res === "RESOLVED")) XLSX.utils.book_append_sheet(wb, toSheet(invoiceRows(rows.filter(r => r._res === "RESOLVED"))), "Resolved invoices");
+  XLSX.utils.book_append_sheet(wb, toSheet(rows.map(lineRow)), "All items");
+  XLSX.writeFile(wb, `Discount_Radar_${MD_NAME.replace(/[^A-Za-z0-9]+/g, "_").slice(0, 50)}.xlsx`);
+};
+
+function renderDashboard(){
+  const k = REPORT.kpi, df = REPORT.df;
+  const period = k.from === k.to ? niceDate(k.from) : `${niceDate(k.from)} – ${niceDate(k.to)}`;
+  $("heroV").textContent = rs(k.exV);
+  $("heroP").innerHTML = `<b>${invs(k.exInv)}</b> (${items(k.ex)}) got more discount than the offer allowed, without any approval noted. That is <b>${(k.exPct * 100).toFixed(2)}%</b> of the MRP value checked, across <b>${k.exBranches}</b> of ${k.branches} stores.${k.rsInv ? ` ${lakh(k.rsV)} on <b>${invs(k.rsInv)}</b> resolved and not counted.` : ""}`;
+  $("heroD").textContent = `${period} · ${invs(k.inv)} checked · click to see all`;
+  const within = df.filter(r => r._res === "Within Offer").length;
+  $("minis").innerHTML = [
+    ["Within offer", ((within / (k.matched || 1)) * 100).toFixed(1) + "%", `${inr(within)} of ${items(k.matched)}`, "good", ""],
+    ["Total discount given", lakh(k.act), "on items matched to an offer", "", ""],
+    ["Approval noted in remark", lakh(k.apV), `${invs(k.apInv)} · ${items(k.ap)} · verify`, "warn clk", "appr"],
+    ["Needs attention", inr(k.noRule + k.demo + k.chk), `${k.noRule} no rule · ${k.demo} demo · ${k.chk} MRP check`, "clk", "attn"]
+  ].map(([l, v, s, c, id]) => `<div class="mini ${c}" ${id ? `data-open="${id}"` : ""}><div class="l">${l}</div><div class="v num">${v}</div><div class="s">${s}</div>${id ? `<div class="go">View invoices →</div>` : ""}</div>`).join("") +
+    `<div class="mini wide res clk" data-open="res"><div><div class="l">Resolved with remark</div><div class="v num">${k.rsV ? lakh(k.rsV) : "₹0"}</div>
+       <div class="s">${k.rsInv ? `${invs(k.rsInv)} resolved (full or part) · not counted in leakage` : "Open a leakage invoice and click “Resolve with remark”"} · saved in this browser (${inr(Object.keys(RESOLVED).length)} total)</div></div>
+       <div class="rb"><button class="btn-s btn-ghost" type="button" id="rsDl">Download resolve file</button><button class="btn-s btn-ghost" type="button" id="rsUp">Load resolve file</button>
+       <input type="file" id="rsFile" accept=".xlsx,.xls" class="hide"></div></div>`;
+  $("rsDl").onclick = e => { e.stopPropagation(); if (!Object.keys(RESOLVED).length) return alert("Nothing resolved yet."); downloadRes(); };
+  $("rsUp").onclick = e => { e.stopPropagation(); $("rsFile").click(); };
+  $("rsFile").onclick = e => e.stopPropagation();
+  $("rsFile").onchange = e => { const f = e.target.files[0]; if (f) loadResFile(f); e.target.value = ""; };
+  $("minis").querySelectorAll("[data-open]").forEach(el => el.onclick = () => {
+    openModal({list: el.dataset.open});
+  });
+  $("heroCard").onclick = () => openModal({all: 1});
+  $("sq").value = "";
+  renderCards();
+}
+
+/* tooltip */
+(() => {
+  const tip = $("tip");
+  document.addEventListener("mousemove", e => {
+    const t = e.target.closest("[data-tip]");
+    if (!t){ tip.classList.remove("on"); return; }
+    tip.textContent = t.dataset.tip; tip.classList.add("on");
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = e.clientX + 14, y = e.clientY + 14;
+    if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+    if (y + h > innerHeight - 8) y = e.clientY - h - 14;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  });
+})();
+
+/* ======================= DETAIL TABLES ======================= */
+const TAB_ORDER = ["Leakage Invoices","Extra Discount","Approval in Remark","By Branch","By Executive","By Model","By Offer Rule","By Date","By Pay Mode","No Rule / Check","Data Checks","All Lines","Overview"];
+const TAB_LABEL = {"Leakage Invoices": "Leakage invoices", "Resolved Invoices": "Resolved invoices", "Extra Discount": "Leakage items", "Approval in Remark": "Approval in remark", "No Rule / Check": "No rule / check"};
+const LINE_TABS = ["Extra Discount","Approval in Remark","No Rule / Check","All Lines"];
+const KEY_COLS = ["Date","Branch ID","Invoice","Executive","Item Name","Pay Mode","Unit MRP","Actual Disc (Rs)","Allowed Disc (Rs)","Extra Disc (Rs)","Extra Disc %","Offer Rule (PDF)","Result","Internal Remark"];
+let curTab = "Leakage Invoices", sortCol = null, sortAsc = false;
+const MAX_ROWS = 1500;
+const isPct = c => c.includes("%");
+const isMoney = c => /(Rs\)|MRP|Value|Total)/.test(c) && !isPct(c) && c !== "MRP Version";
+const RES_LABEL = {"EXTRA DISCOUNT": "Leakage", "RESOLVED": "Resolved", "APPROVAL IN REMARK": "Approval noted", "Within Offer": "Within offer", "No Rule Found": "No rule", "CHECK MRP": "Check MRP", "DEMO STOCK": "Demo stock", "REVIEW": "Review", "OK": "OK"};
+
+function renderTabs(){
+  $("tabs").innerHTML = TAB_ORDER.map(t => {
+    const n = (LINE_TABS.includes(t) && t !== "All Lines") || t === "Leakage Invoices" ? `<span class="n">${REPORT.T[t].length}</span>` : "";
+    return `<button class="tab ${t === curTab ? "on" : ""}" data-t="${t}">${TAB_LABEL[t] || t}${n}</button>`;
+  }).join("");
+  $("tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => { curTab = b.dataset.t; sortCol = null; $("q").value = ""; renderTabs(); renderTable(); });
+}
+function cell(c, v){
+  if (v == null || v === "") return `<td></td>`;
+  if (c === "Result"){
+    const cls = v === "EXTRA DISCOUNT" || v === "REVIEW" ? "p-bad" : v === "Within Offer" || v === "OK" ? "p-ok" : v === "APPROVAL IN REMARK" ? "p-warn" : "p-neu";
+    return `<td><span class="pill ${cls}">${RES_LABEL[v] || esc(v)}</span></td>`;
+  }
+  if (typeof v === "number"){
+    const x = c === "Extra Disc (Rs)" && v > 0 ? " xx" : "";
+    if (isPct(c)) return `<td class="n${x}">${pct(v)}</td>`;
+    return `<td class="n${x}">${isMoney(c) || Math.abs(v) >= 1000 ? inr(v) : (Number.isInteger(v) ? v : v.toFixed(2))}</td>`;
+  }
+  const t = esc(v);
+  return t.length > 45 ? `<td class="lt" title="${t}">${t}</td>` : `<td>${t}</td>`;
+}
+function renderTable(){
+  let data = REPORT.T[curTab] || [];
+  const q = $("q").value.trim().toLowerCase();
+  if (q) data = data.filter(r => Object.values(r).some(v => v != null && String(v).toLowerCase().includes(q)));
+  if (sortCol){
+    data = [...data].sort((a, b) => {
+      const x = a[sortCol], y = b[sortCol];
+      if (x == null) return 1; if (y == null) return -1;
+      const r = typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y));
+      return sortAsc ? r : -r;
+    });
+  }
+  const isLine = LINE_TABS.includes(curTab);
+  $("allColsL").classList.toggle("hide", !isLine);
+  let cols = data.length ? Object.keys(data[0]) : Object.keys((REPORT.T[curTab] || [{}])[0] || {});
+  if (isLine && !$("allCols").checked) cols = KEY_COLS.filter(c => cols.includes(c));
+  const shown = data.slice(0, MAX_ROWS);
+  $("tbl").innerHTML = `<thead><tr>${cols.map(c => `<th data-c="${esc(c)}">${esc(c)}${sortCol === c ? (sortAsc ? " ▲" : " ▼") : ""}</th>`).join("")}</tr></thead>` +
+    `<tbody>${shown.map(r => `<tr>${cols.map(c => cell(c, r[c])).join("")}</tr>`).join("")}</tbody>`;
+  $("tbl").querySelectorAll("th").forEach(th => th.onclick = () => {
+    const c = th.dataset.c; if (sortCol === c) sortAsc = !sortAsc; else { sortCol = c; sortAsc = false; } renderTable();
+  });
+  $("cnt").textContent = `${inr(data.length)} rows` + (data.length > MAX_ROWS ? ` · showing first ${MAX_ROWS}, all rows in Excel` : "");
+  const notes = {
+    "Leakage Invoices": "One row per invoice with leakage (an invoice can have many items). Leakage = discount on bill − discount allowed by the offer.",
+    "Extra Discount": "One row per item. Leakage = discount on bill − discount allowed by the offer master. Round-off up to the tolerance in Settings is ignored.",
+    "No Rule / Check": "No rule = model / MRP not in the master (add a row). Check MRP = bill MRP higher than item list. Demo stock = demo items (item name/code or remark says DEMO), kept out of leakage.",
+    "Approval in Remark": "Extra discount where Internal Remark / Remark mentions an approval (words set in Settings). Kept out of leakage – verify the approval.",
+    "Data Checks": "Sales statement checks on cleaned data. Full rows are in the Excel report."
+  };
+  $("tnote").textContent = notes[curTab] || "";
+}
+
+/* ======================= EXCEL EXPORT ======================= */
+/* ======================= EXCEL EXPORT ======================= */
+function toSheet(rows){
+  const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{"Info":"No rows"}]);
+  const cols = rows.length ? Object.keys(rows[0]) : [];
+  const range = XLSX.utils.decode_range(ws["!ref"]);
+  cols.forEach((c, j) => {
+    const fmt = isPct(c) ? "0.00%" : (isMoney(c) ? "#,##0" : null);
+    if (!fmt) return;
+    for (let i = 1; i <= range.e.r; i++){
+      const a = ws[XLSX.utils.encode_cell({r:i, c:j})];
+      if (a && a.t === "n") a.z = fmt;
+    }
+  });
+  ws["!cols"] = cols.map(c => ({wch: Math.min(Math.max(c.length, ...rows.slice(0, 200).map(r => String(r[c] ?? "").length)) + 2, 45)}));
+  ws["!freeze"] = {xSplit: 0, ySplit: 1};
+  return ws;
+}
+$("dlBtn").onclick = () => {
+  const wb = XLSX.utils.book_new();
+  const order = ["Overview","Leakage Invoices","Resolved Invoices","Extra Discount","Approval in Remark","By Branch","By Executive","By Model","By Offer Rule","By Date","By Pay Mode","No Rule / Check","Data Checks"];
+  order.forEach(n => XLSX.utils.book_append_sheet(wb, toSheet(REPORT.T[n]), (TAB_LABEL[n] || n).replace("/", "-").slice(0, 31)));
+  REPORT.checkDetail.forEach(([n, rows]) => XLSX.utils.book_append_sheet(wb, toSheet(rows), ("Chk - " + n).slice(0, 31)));
+  if (REPORT.removed.length) XLSX.utils.book_append_sheet(wb, toSheet(REPORT.removed.map(r => ({
+    "Removed Reason": r["Removed Reason"], "Date": r["TXNDate"], "Branch ID": r["Original Branch ID"] || r["Branch ID"],
+    "Invoice": r["TXNName"], "Executive": r["Executive"], "Item Name": r["Item_Name"], "Total": num(r["Total"]),
+    "Internal Remark": r["Internal Remark"]}))), "Removed Rows");
+  XLSX.utils.book_append_sheet(wb, toSheet(REPORT.T["All Lines"]), "All Lines");
+  const k = REPORT.kpi;
+  XLSX.writeFile(wb, `Discount_Radar_${k.from}${k.to !== k.from ? "_to_" + k.to : ""}.xlsx`);
+};
+
+/* ======================= RUN ======================= */
+function filesSummary(){
+  return ["sales","master","items"].map(k => files[k] ? `<b>${esc(files[k].name)}</b>` : "").filter(Boolean).join(" · ");
+}
+$("runBtn").onclick = () => {
+  setMsg("Checking every bill ...");
+  $("runBtn").disabled = true;
+  setTimeout(() => {
+    try {
+      const t0 = performance.now();
+      build();
+      curTab = "Leakage Invoices"; sortCol = null;
+      renderDashboard();
+      $("results").classList.remove("hide");
+      ["dlBtn","changeBtn","printBtn"].forEach(id => $(id).classList.remove("hide"));
+      $("upl").classList.add("compact"); $("filesline").innerHTML = filesSummary();
+      setMsg(`Done in ${((performance.now() - t0) / 1000).toFixed(1)} s.`);
+      $("results").scrollIntoView({behavior: "smooth", block: "start"});
+    } catch(e){
+      console.error(e); setMsg("Error: " + e.message, true);
+    }
+    $("runBtn").disabled = false;
+  }, 30);
+};
+$("changeBtn").onclick = () => { $("upl").classList.toggle("compact"); };
+$("printBtn").onclick = () => window.print();
+
+loadSettings();
+</script>
+</body>
+</html>
