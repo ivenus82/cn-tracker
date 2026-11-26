@@ -42,11 +42,11 @@ h1{font-size:22px;font-weight:700;margin:0;line-height:1.2}
 .head .sub{font-size:12.5px;color:var(--mut)}
 .search{position:relative;flex:0 1 340px}
 .search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--mut)}
-.search input{width:100%;padding-left:40px;border-radius:99px;background:var(--soft);border-color:transparent}
+.search input{width:100%;padding-left:40px;background:var(--soft);border-color:transparent}
 .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
 .hr{display:flex;align-items:center;gap:12px;flex:0 1 420px;justify-content:flex-end}
 .hr .search{flex:1 1 auto}
-.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-top:14px}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-top:0;background:var(--card);border-radius:18px;padding:14px 18px;box-shadow:var(--sh)}
 .filters label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:500;color:var(--mut)}
 select,input,textarea{font:14px Poppins,sans-serif;min-height:40px;padding:8px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px}
 .filters select{min-width:120px}
@@ -189,7 +189,7 @@ pre,.scroll{overflow-x:auto}
  .brand{padding:0 6px 0 0}.side .lab,.side .sp{display:none}
  .menu{flex-direction:row;flex-wrap:wrap;gap:6px;width:100%}
  .menu a,.menu button{width:auto;flex:1 1 auto;min-height:40px;padding:0 12px;justify-content:center}
- .side .conn{display:none}
+ .side .conn{width:100%;border:0;margin:0;padding:2px 6px}
  .mainc{margin-left:0;padding:14px 12px 30px}
 }
 @media(max-width:600px){.f{grid-template-columns:1fr}.sheet{padding:0;align-items:stretch}.panel{max-height:none;height:100%;border-radius:0}.panel h3{border-radius:0}
@@ -213,23 +213,17 @@ pre,.scroll{overflow-x:auto}
     <button type="button" id="bConn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>Connection</button>
   </nav>
   <div class="sp"></div>
-  <div class="conn">Google Sheet connected</div>
+  <div class="conn" id="sync">Loading…</div>
   <input type="file" id="file" accept=".xlsx,.xls,.xlsm" hidden>
 </aside>
 
 <div class="mainc">
-  <div class="head">
-    <div><h1>Welcome Hardik!</h1><div class="sub" id="sync">Loading…</div></div>
-    <div class="hr">
-      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="fQ" type="search" placeholder="Search deal, URN, CN ref" aria-label="Search"></label>
-      <div class="avatar" aria-hidden="true">HK</div>
-    </div>
-  </div>
   <div class="filters">
     <label>Disti<select id="fDisti"></select></label>
     <label>Quarter<select id="fQtr"></select></label>
     <label>Discount via<select id="fVia"></select></label>
     <label>Status<select id="fSt"><option value="">All</option><option>Open</option><option>Closed</option></select></label>
+    <label class="search" style="flex:1 1 260px;max-width:380px">Search<span style="position:relative;display:block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="fQ" type="search" placeholder="Deal, URN, CN ref"></span></label>
     <button type="button" id="bClearF" hidden>Clear filters</button>
   </div>
   <div id="msg"></div>
