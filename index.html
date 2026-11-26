@@ -118,22 +118,28 @@ td.ref{white-space:nowrap}
 .fc{white-space:nowrap;font-size:12.5px;color:var(--mut)}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid var(--line);flex-wrap:wrap}
 /* side panel form */
-.sheet{position:fixed;inset:0;background:rgb(15 23 42/.5);display:none;justify-content:flex-end;z-index:30}
+.sheet{position:fixed;inset:0;background:rgb(15 23 42/.55);display:none;justify-content:center;align-items:center;padding:24px;z-index:30;backdrop-filter:blur(2px)}
 .sheet.on{display:flex}
-.panel{background:var(--card);width:min(600px,100%);height:100%;overflow:auto;padding:0 0 30px;box-shadow:var(--shL)}
-.panel h3{font-size:18px;font-weight:700;margin:0;padding:18px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:1}
+.panel{background:var(--card);width:min(900px,100%);max-height:min(92vh,960px);overflow:auto;padding:0;box-shadow:0 24px 60px rgb(0 0 0/.35);border-radius:16px;border:1px solid var(--line)}
+#connForm{width:min(560px,100%)}
+@media(prefers-reduced-motion:no-preference){.sheet.on .panel{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}}
+.panel h3{font-size:18px;font-weight:700;margin:0;padding:18px 24px;border-radius:16px 16px 0 0;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:1}
 .f{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:18px 24px 0}
 .f label{display:flex;flex-direction:column;font-size:12.5px;font-weight:600;color:var(--mut);gap:5px}
 .f .w{grid-column:1/-1}
+@media(min-width:760px){#form .f{grid-template-columns:repeat(4,minmax(0,1fr))}#form .f>label,#form .f>.att{grid-column:span 2}#form .f>label.q{grid-column:span 1}#form .f>label.w{grid-column:1/-1}#form textarea{min-height:56px}}
 .f .sec{grid-column:1/-1;font-weight:700;color:var(--ink);font-size:14px;padding-top:10px;border-top:1px solid var(--line);margin-top:4px}
 .pend{grid-column:1/-1;font-size:14px}
 .pend:not(:empty){background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .pend b{font-size:18px}
 .fa{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding:0 24px}
+.panel>.fa{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:14px 24px;margin-top:20px;justify-content:flex-end}
+.panel>.fa .red{margin-right:auto;order:-1}
+.panel>.conf{margin-bottom:14px}
 .conf{border:1px solid color-mix(in srgb,var(--red) 40%,transparent);background:var(--redS);border-radius:10px;padding:12px;margin:14px 24px 0;display:none}
 .conf.on{display:block}.conf .fa{padding:0;margin-top:10px}
 #vDeals .conf{margin:12px 18px}
-.att{grid-column:1/-1;border:1px dashed var(--line);border-radius:12px;padding:12px 14px;background:var(--soft)}
+.att{grid-column:auto;border:1px dashed var(--line);border-radius:12px;padding:12px 14px;background:var(--soft)}
 .att .hd{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;color:var(--ink);font-weight:700;font-size:14px}
 .att ul{list-style:none;margin:8px 0 0;padding:0}
 .att li{display:flex;align-items:center;gap:8px;padding:6px 8px;margin-top:6px;background:var(--card);border:1px solid var(--line);border-radius:8px;font-size:14px}
@@ -145,7 +151,7 @@ td.ref{white-space:nowrap}
 .att .st{font-size:12.5px;color:var(--mut);margin-top:8px}
 .panel .note{padding:0 24px}
 pre,.scroll{overflow-x:auto}
-@media(max-width:600px){.f{grid-template-columns:1fr}.filters input,.filters select{min-width:0;width:100%}.filters label{flex:1 1 40%}.tabs{width:100%}.tabs a{flex:1;text-align:center}
+@media(max-width:600px){.f{grid-template-columns:1fr}.sheet{padding:0;align-items:stretch}.panel{max-height:none;height:100%;border-radius:0}.panel h3{border-radius:0}.filters input,.filters select{min-width:0;width:100%}.filters label{flex:1 1 40%}.tabs{width:100%}.tabs a{flex:1;text-align:center}
 .topbar{position:static}.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi{padding:14px}.kpi .n{font-size:22px}.kpi .ic{display:none}.topbar .acts{width:100%}.topbar .acts button{flex:1 1 auto;justify-content:center}
 table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding:10px 14px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mut);font-size:12px}.stack td:empty{display:none}}
 @media(prefers-reduced-motion:no-preference){.meter i,.stackbar i{transition:width .5s ease}}
@@ -247,10 +253,10 @@ table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding:10
   <form class="panel" id="form" autocomplete="off">
     <h3 id="fTitle">New deal</h3>
     <div class="f">
-      <label>ND (Disti)<input id="i_disti" list="dlDisti" required></label>
-      <label>Deal date<input id="i_date" type="date"></label>
-      <label>QTR (auto from date)<input id="i_qtr" placeholder="Q1'27"></label>
-      <label>Apple week (auto from date)<input id="i_week" placeholder="WK05"></label>
+      <label class="q">ND (Disti)<input id="i_disti" list="dlDisti" required></label>
+      <label class="q">Deal date<input id="i_date" type="date"></label>
+      <label class="q">Quarter (auto)<input id="i_qtr" placeholder="Q1'27"></label>
+      <label class="q">Apple week (auto)<input id="i_week" placeholder="WK05"></label>
       <label class="w">Deal details<textarea id="i_details" required></textarea></label>
       <label>Discount via<select id="i_via"><option>CN</option><option>Upfront</option><option>URN</option><option>PC</option><option>ORC</option></select></label>
       <label>URN / PC no.<input id="i_urn"></label>
@@ -266,13 +272,13 @@ table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding:10
       <label>Deal status<select id="i_status"><option>Open</option><option>Closed</option></select></label>
       <label class="w">Internal remarks<textarea id="i_remarks"></textarea></label>
     </div>
+    <div class="conf" id="conf">Delete this deal permanently?
+      <div class="fa"><button type="button" class="red" id="bDelYes">Yes, delete</button><button type="button" id="bDelNo">Keep</button></div>
+    </div>
     <div class="fa">
       <button class="pri" type="submit" id="bSave">Save deal</button>
       <button type="button" id="bCancel">Cancel</button>
       <button type="button" class="red" id="bDel" hidden>Delete</button>
-    </div>
-    <div class="conf" id="conf">Delete this deal permanently?
-      <div class="fa"><button type="button" class="red" id="bDelYes">Yes, delete</button><button type="button" id="bDelNo">Keep</button></div>
     </div>
   </form>
 </div>
