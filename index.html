@@ -76,6 +76,16 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--soft)}
 .fa{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .conf{border:2px solid var(--red);padding:12px;margin-top:14px;display:none}
 .conf.on{display:block}
+.att{grid-column:1/-1;border:1px dashed var(--mut);padding:10px 12px}
+.att .hd{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;color:var(--ink);font-weight:700;font-size:14px}
+.att ul{list-style:none;margin:8px 0 0;padding:0}
+.att li{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:14px}
+.att li a{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.att li .ty{font-size:11px;font-weight:800;padding:1px 5px;border:1.5px solid var(--mut);color:var(--mut)}
+.att li button{min-height:32px;padding:0 10px;font-size:13px;border-width:1px}
+.att .up{min-height:36px;padding:0 12px;font-size:14px}
+.att .st{font-size:13px;color:var(--mut);margin-top:6px}
+.fc{white-space:nowrap;font-size:13px}
 pre,.scroll{overflow-x:auto}
 @media(max-width:600px){.f{grid-template-columns:1fr}.row{grid-template-columns:5.5em minmax(0,1fr) 6em}
 table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mut)}.stack td:empty{display:none}}
@@ -161,6 +171,9 @@ table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-bl
       <label>CN no. / reference<input id="i_cnRef"></label>
       <label>CN date / remarks<input id="i_cnDate"></label>
       <div class="pend" id="pend"></div>
+      <div class="att" id="att_billingFiles"><div class="hd">Billing attachments <button type="button" class="up" data-k="billingFiles">+ Attach files</button></div><ul></ul><div class="st"></div></div>
+      <div class="att" id="att_cnFiles"><div class="hd">CN working attachments <button type="button" class="up" data-k="cnFiles">+ Attach files</button></div><ul></ul><div class="st"></div></div>
+      <input type="file" id="attIn" multiple accept=".pdf,.xlsx,.xls,.xlsm,.csv" hidden>
       <label>Deal status<select id="i_status"><option>Open</option><option>Closed</option></select></label>
       <label class="w">Internal remarks<textarea id="i_remarks"></textarea></label>
     </div>
@@ -237,9 +250,10 @@ function dealRow(d){
   <td class="det">${esc(d.details)}</td><td>${esc(d.via)}</td><td>${esc(d.urn)}</td>
   <td class="num">${d.billing!=null?inr(d.billing):''}</td><td class="num">${d.cn!=null?inr(d.cn):''}</td>
   <td class="num">${pending(d)?inr(pending(d)):''}</td><td><span class="tag ${d.status==='Open'?'open':''}">${esc(d.status)}</span></td>
-  <td>${esc(d.cnRef)}${d.cnDate?'<br><span class="muted">'+esc(d.cnDate)+'</span>':''}</td></tr>`;
+  <td>${esc(d.cnRef)}${d.cnDate?'<br><span class="muted">'+esc(d.cnDate)+'</span>':''}</td>
+  <td class="fc">${(d.billingFiles||[]).length?'Bill '+d.billingFiles.length:''}${(d.billingFiles||[]).length&&(d.cnFiles||[]).length?' · ':''}${(d.cnFiles||[]).length?'CN '+d.cnFiles.length:''}</td></tr>`;
 }
-const HEAD='<thead><tr><th>Disti</th><th>QTR</th><th>Week</th><th>Deal details</th><th>Via</th><th>URN/PC</th><th class="num">Negotiated</th><th class="num">CN amt</th><th class="num">Pending</th><th>Status</th><th>CN ref / date</th></tr></thead>';
+const HEAD='<thead><tr><th>Disti</th><th>QTR</th><th>Week</th><th>Deal details</th><th>Via</th><th>URN/PC</th><th class="num">Negotiated</th><th class="num">CN amt</th><th class="num">Pending</th><th>Status</th><th>CN ref / date</th><th>Files</th></tr></thead>';
 
 function render(){
   fillSel('fDisti',deals.map(d=>d.disti));
@@ -266,29 +280,69 @@ window.addEventListener('hashchange',route);route();
 /* form */
 const F=['disti','date','qtr','week','details','via','urn','billing','cn','cnRef','cnDate','status','remarks'];
 function showPend(){const b=num($('i_billing').value)||0,c=num($('i_cn').value)||0;$('pend').innerHTML=b?`Difference (negotiated − CN): <b style="color:${b-c>0?'var(--red)':'inherit'}">₹${inr(b-c)}</b>`:''}
+/* attachments: uploaded to Google Drive through the Apps Script; list kept on the deal */
+const AK=['billingFiles','cnFiles'];
+let att={billingFiles:[],cnFiles:[]},attNew=[],attRemoved=[],attKey=null,uploading=0;
+const MAXMB=25;
+function drawAtt(){
+  for(const k of AK){
+    const box=$('att_'+k),ul=box.querySelector('ul');
+    ul.innerHTML=att[k].map((f,i)=>{const ext=(String(f.name).split('.').pop()||'').toUpperCase().slice(0,4);
+      const link=/^https:\/\//.test(f.url||'')?`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>`:`<span>${esc(f.name)}</span>`;
+      return`<li><span class="ty">${esc(ext)}</span>${link}<button type="button" data-rm="${k}" data-i="${i}" aria-label="Remove ${esc(f.name)}">Remove</button></li>`}).join('');
+    if(!att[k].length)box.querySelector('.st').textContent='No files attached.';
+    else if(!uploading)box.querySelector('.st').textContent=att[k].length+' file'+(att[k].length>1?'s':'');
+  }
+}
+const toB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(r.error);r.readAsDataURL(f)});
+document.addEventListener('click',e=>{
+  const up=e.target.closest('button.up');if(up){attKey=up.dataset.k;$('attIn').click();return}
+  const rm=e.target.closest('button[data-rm]');
+  if(rm){const k=rm.dataset.rm,f=att[k][+rm.dataset.i];att[k].splice(+rm.dataset.i,1);
+    const n=attNew.findIndex(x=>x.id===f.id);if(n>=0){attNew.splice(n,1);call({action:'deleteFile',fileId:f.id}).catch(()=>{})}else attRemoved.push(f);
+    drawAtt()}
+});
+$('attIn').addEventListener('change',async e=>{
+  const files=[...e.target.files];e.target.value='';const k=attKey;if(!files.length||!k)return;
+  const st=$('att_'+k).querySelector('.st');
+  for(const f of files){
+    if(!/\.(pdf|xlsx|xls|xlsm|csv)$/i.test(f.name)){st.textContent=f.name+' skipped — only PDF or Excel.';continue}
+    if(f.size>MAXMB*1048576){st.textContent=f.name+' is over '+MAXMB+' MB — skipped.';continue}
+    uploading++;$('bSave').disabled=true;st.textContent='Uploading '+f.name+'…';
+    try{const j=await call({action:'upload',name:f.name,mime:f.type||'application/octet-stream',data:await toB64(f)});
+      att[k].push(j.file);attNew.push(j.file);st.textContent=f.name+' uploaded.'}
+    catch(err){st.textContent='Upload failed for '+f.name+': '+(err?.message||'error')}
+    uploading--;if(!uploading)$('bSave').disabled=false;
+  }
+  drawAtt();
+});
 function openForm(d){
+  att={billingFiles:[...(d?.billingFiles||[])],cnFiles:[...(d?.cnFiles||[])]};attNew=[];attRemoved=[];drawAtt();
   editId=d?d.id:null;$('fTitle').textContent=d?'Edit deal':'New deal';$('bDel').hidden=!d;$('conf').className='conf';
   for(const k of F){const v=d?d[k]:'';$('i_'+k).value=v==null?'':((k==='billing'||k==='cn')&&v!==''?String(v):v)}
   if(!d){$('i_via').value='CN';$('i_status').value='Open';$('i_date').value=new Date().toISOString().slice(0,10);autoWeek()}
   showPend();$('sheet').className='sheet on';$('i_disti').focus();
 }
-function closeForm(){$('sheet').className='sheet'}
+function closeForm(saved){
+  if(!saved)for(const f of attNew)call({action:'deleteFile',fileId:f.id}).catch(()=>{});
+  attNew=[];attRemoved=[];$('sheet').className='sheet'}
 function autoWeek(){const w=appleWeek($('i_date').value);if(w){$('i_qtr').value=w.qtr;$('i_week').value=w.week}}
 $('i_date').addEventListener('change',autoWeek);
 $('i_billing').addEventListener('input',showPend);$('i_cn').addEventListener('input',showPend);
 $('bNew').addEventListener('click',()=>openForm(null));
-$('bCancel').addEventListener('click',closeForm);
-$('sheet').addEventListener('click',e=>{if(e.target===$('sheet'))closeForm()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeForm()});
+$('bCancel').addEventListener('click',()=>closeForm());
+$('sheet').addEventListener('click',e=>{if(e.target===$('sheet')&&!uploading)closeForm()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('sheet').className==='sheet on'&&!uploading)closeForm()});
 document.addEventListener('click',e=>{const tr=e.target.closest('tr.click');if(tr){const d=deals.find(x=>x.id===tr.dataset.id);if(d)openForm(d)}});
 $('form').addEventListener('submit',async e=>{
   e.preventDefault();
   const o={};for(const k of F)o[k]=$('i_'+k).value.trim();
-  o.billing=num(o.billing);o.cn=num(o.cn);
+  o.billing=num(o.billing);o.cn=num(o.cn);o.billingFiles=att.billingFiles;o.cnFiles=att.cnFiles;
+  if(uploading){say('Wait for uploads to finish.',true);return}
   const old=editId?deals.find(x=>x.id===editId):null;
   o.created=old?.created||Date.now();o.updated=Date.now();
   $('bSave').disabled=true;
-  try{await (editId?db.collection('deals').doc(editId):db.collection('deals').doc()).set(o);say(editId?'Deal updated.':'Deal saved.');closeForm()}
+  try{await (editId?db.collection('deals').doc(editId):db.collection('deals').doc()).set(o);say(editId?'Deal updated.':'Deal saved.');for(const f of attRemoved)call({action:'deleteFile',fileId:f.id}).catch(()=>{});closeForm(true)}
   catch(err){say(err?.code==='invalid_argument'?'Could not save.':'Save failed: '+(err?.message||err?.code),true)}
   $('bSave').disabled=false;
 });
@@ -335,7 +389,8 @@ $('file').addEventListener('change',async e=>{
 async function doExport(){
   const L=filtered();if(!L.length){say('Nothing to export.',true);return}
   const out=L.map(d=>({'Disti':d.disti,'Deal Date':d.date,'QTR':d.qtr,'Week':d.week,'Deal Details':d.details,'Discount Via':d.via,'URN/PC No':d.urn,
-    'Billing & CN Calc Amount':d.billing,'CN Amount':d.cn,'Pending':pending(d)||null,'Deal Status':d.status,'CN Ref':d.cnRef,'CN Date / Remarks':d.cnDate,'Remarks':d.remarks}));
+    'Billing & CN Calc Amount':d.billing,'CN Amount':d.cn,'Pending':pending(d)||null,'Deal Status':d.status,'CN Ref':d.cnRef,'CN Date / Remarks':d.cnDate,'Remarks':d.remarks,
+    'Billing Files':(d.billingFiles||[]).map(f=>f.name+' '+f.url).join('\n'),'CN Working Files':(d.cnFiles||[]).map(f=>f.name+' '+f.url).join('\n')}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(out),'Deals');
   const buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});
   try{await dl.save({filename:'CN_Tracker_'+new Date().toISOString().slice(0,10)+'.xlsx',data:new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})});say('Exported '+L.length+' deals.')}
@@ -359,10 +414,11 @@ async function refresh(quiet){
   try{
     const r=await fetch(CFG.url+'?key='+encodeURIComponent(CFG.key));const j=await r.json();
     if(!j.ok)throw{message:j.error};
-    if(!busy){deals=j.deals.filter(d=>d.id).map(d=>({...d,billing:num(d.billing),cn:num(d.cn),created:+d.created||0,updated:+d.updated||0}));render()}
+    if(!busy){deals=j.deals.filter(d=>d.id).map(d=>({...d,billingFiles:pj(d.billingFiles),cnFiles:pj(d.cnFiles),billing:num(d.billing),cn:num(d.cn),created:+d.created||0,updated:+d.updated||0}));render()}
     $('sync').textContent=`${deals.length} deals · Google Sheet · refreshed ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
   }catch(err){$('sync').textContent='Could not load from Google Sheet: '+(err?.message||'check URL / password / internet')}
 }
+const pj=s=>{if(Array.isArray(s))return s;try{const a=JSON.parse(s||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 db={collection:()=>({doc:(id)=>{id=id||newId();return{id,
   set:async o=>{busy=true;try{await call({action:'set',id,data:o});const i=deals.findIndex(d=>d.id===id);if(i>=0)deals[i]={id,...o};else deals.push({id,...o});render()}finally{busy=false}refresh(true)},
