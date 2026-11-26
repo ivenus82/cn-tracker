@@ -19,8 +19,10 @@
 --sh:light-dark(0 1px 2px rgb(15 23 42/.06),0 1px 2px rgb(0 0 0/.4));--shL:light-dark(0 8px 24px rgb(15 23 42/.10),0 8px 24px rgb(0 0 0/.5))}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;overflow-x:clip;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1320px;margin:0 auto;padding:0 max(3vw,14px)}
+.wrap{width:100%;margin:0;padding:0 clamp(12px,1.6vw,28px)}
+@media(min-width:1600px){.fig{min-height:360px}}
 /* top bar */
 .topbar{background:var(--navy);color:#fff;position:sticky;top:0;z-index:10;box-shadow:0 2px 10px rgb(0 0 0/.15)}
 .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-block:12px}
