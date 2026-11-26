@@ -282,7 +282,7 @@ const F=['disti','date','qtr','week','details','via','urn','billing','cn','cnRef
 function showPend(){const b=num($('i_billing').value)||0,c=num($('i_cn').value)||0;$('pend').innerHTML=b?`Difference (negotiated − CN): <b style="color:${b-c>0?'var(--red)':'inherit'}">₹${inr(b-c)}</b>`:''}
 /* attachments: uploaded to Google Drive through the Apps Script; list kept on the deal */
 const AK=['billingFiles','cnFiles'];
-let att={billingFiles:[],cnFiles:[]},attNew=[],attRemoved=[],attKey=null,uploading=0;
+let attMsg={},att={billingFiles:[],cnFiles:[]},attNew=[],attRemoved=[],attKey=null,uploading=0;
 const MAXMB=25;
 function drawAtt(){
   for(const k of AK){
@@ -290,8 +290,9 @@ function drawAtt(){
     ul.innerHTML=att[k].map((f,i)=>{const ext=(String(f.name).split('.').pop()||'').toUpperCase().slice(0,4);
       const link=/^https:\/\//.test(f.url||'')?`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>`:`<span>${esc(f.name)}</span>`;
       return`<li><span class="ty">${esc(ext)}</span>${link}<button type="button" data-rm="${k}" data-i="${i}" aria-label="Remove ${esc(f.name)}">Remove</button></li>`}).join('');
-    if(!att[k].length)box.querySelector('.st').textContent='No files attached.';
-    else if(!uploading)box.querySelector('.st').textContent=att[k].length+' file'+(att[k].length>1?'s':'');
+    const st=box.querySelector('.st');
+    st.textContent=attMsg[k]||(att[k].length?att[k].length+' file'+(att[k].length>1?'s':''):'No files attached.');
+    st.style.color=attMsg[k]&&/fail|skipped|over/i.test(attMsg[k])?'var(--red)':'';
   }
 }
 const toB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(r.error);r.readAsDataURL(f)});
@@ -304,21 +305,22 @@ document.addEventListener('click',e=>{
 });
 $('attIn').addEventListener('change',async e=>{
   const files=[...e.target.files];e.target.value='';const k=attKey;if(!files.length||!k)return;
-  const st=$('att_'+k).querySelector('.st');
+  const msgs=[];const show=t=>{attMsg[k]=t;drawAtt()};
   for(const f of files){
-    if(!/\.(pdf|xlsx|xls|xlsm|csv)$/i.test(f.name)){st.textContent=f.name+' skipped — only PDF or Excel.';continue}
-    if(f.size>MAXMB*1048576){st.textContent=f.name+' is over '+MAXMB+' MB — skipped.';continue}
-    uploading++;$('bSave').disabled=true;st.textContent='Uploading '+f.name+'…';
+    if(!/\.(pdf|xlsx|xls|xlsm|csv)$/i.test(f.name)){msgs.push(f.name+' skipped — only PDF or Excel.');continue}
+    if(f.size>MAXMB*1048576){msgs.push(f.name+' is over '+MAXMB+' MB — skipped.');continue}
+    uploading++;$('bSave').disabled=true;show('Uploading '+f.name+'…');
     try{const j=await call({action:'upload',name:f.name,mime:f.type||'application/octet-stream',data:await toB64(f)});
-      att[k].push(j.file);attNew.push(j.file);st.textContent=f.name+' uploaded.'}
-    catch(err){st.textContent='Upload failed for '+f.name+': '+(err?.message||'error')}
+      att[k].push(j.file);attNew.push(j.file);msgs.push(f.name+' uploaded.')}
+    catch(err){msgs.push('Upload failed for '+f.name+': '+(err?.message||'error'))}
     uploading--;if(!uploading)$('bSave').disabled=false;
   }
-  drawAtt();
+  show(msgs.join(' · '));
 });
 function openForm(d){
-  att={billingFiles:[...(d?.billingFiles||[])],cnFiles:[...(d?.cnFiles||[])]};attNew=[];attRemoved=[];drawAtt();
+  attMsg={};att={billingFiles:[...(d?.billingFiles||[])],cnFiles:[...(d?.cnFiles||[])]};attNew=[];attRemoved=[];drawAtt();
   editId=d?d.id:null;$('fTitle').textContent=d?'Edit deal':'New deal';$('bDel').hidden=!d;$('conf').className='conf';
+  {const sv=$('i_via'),v=d?.via;if(v&&![...sv.options].some(o=>o.value===v)){const o=document.createElement('option');o.textContent=v;sv.appendChild(o)}}
   for(const k of F){const v=d?d[k]:'';$('i_'+k).value=v==null?'':((k==='billing'||k==='cn')&&v!==''?String(v):v)}
   if(!d){$('i_via').value='CN';$('i_status').value='Open';$('i_date').value=new Date().toISOString().slice(0,10);autoWeek()}
   showPend();$('sheet').className='sheet on';$('i_disti').focus();
@@ -405,7 +407,8 @@ const connected=()=>CFG.url&&CFG.key;
 async function call(body){
   if(!connected())throw{message:'Not connected — click Connection and add the Google Script URL.'};
   const r=await fetch(CFG.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...body,key:CFG.key})});
-  const j=await r.json();if(!j.ok)throw{message:j.error||'Server error'};return j;
+  const t=await r.text();let j;try{j=JSON.parse(t)}catch(e){const m=/<div[^>]*>([^<]{5,300})<\/div>/.exec(t);throw{message:'Google Script error'+(m?': '+m[1]:'')+' — run doGet once in Apps Script to grant Drive permission, then redeploy.'}}
+  if(!j.ok)throw{message:j.error||'Server error'};return j;
 }
 let busy=false;
 async function refresh(quiet){
