@@ -150,6 +150,7 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--soft)}
 .det{max-width:30em;min-width:14em}
 td.ref{white-space:nowrap}
 .pendv{color:var(--red);font-weight:600}
+.gainv{color:var(--green);font-weight:600}
 .muted{color:var(--mut);font-size:12.5px}
 .empty{padding:32px 12px;color:var(--mut);text-align:center}
 .note{font-size:12px;color:var(--mut);margin:10px 2px 0}
@@ -457,16 +458,24 @@ function recent(list){
     return`<div class="ai click" data-id="${esc(d.id)}"><span class="ic" style="background:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></span>
       <div><span class="t">${esc(ago(d.updated||d.created))}</span><b>${esc(d.details||'Deal')}</b><small>${esc(d.disti||'—')} · ${esc(d.qtr||'')} · ₹${short(d.billing||0)}${op&&pending(d)?' · <span class="pendv">₹'+short(pending(d))+' pending</span>':''}</small></div></div>`}).join(''):'<div class="empty">No deals yet.</div>';
 }
+function diffCell(d){
+  if(d.status==='Open')return pending(d)?'<span class="pendv">₹'+inr(pending(d))+'</span>':'';
+  if(d.cn==null||d.billing==null)return'';
+  const x=Math.round(d.cn-d.billing);
+  if(x>0)return`<span class="gainv" title="CN received more than negotiated">+₹${inr(x)}</span>`;
+  if(x<0)return`<span class="pendv" title="CN received less than negotiated">−₹${inr(-x)}</span>`;
+  return'<span class="muted" title="CN matches negotiated amount">₹0</span>';
+}
 function dealRow(d){
   const nb=(d.billingFiles||[]).length,nc=(d.cnFiles||[]).length;
   return`<tr class="click" data-id="${esc(d.id)}"><td><b>${esc(d.disti)}</b></td><td>${esc(d.qtr)}<br><span class="muted">${esc(d.week)}</span></td>
   <td class="det">${esc(d.details)}</td><td>${d.via?'<span class="chip">'+esc(d.via)+'</span>':''}</td><td>${esc(d.urn)}</td>
   <td class="num">${d.billing!=null?'₹'+inr(d.billing):''}</td><td class="num">${d.cn!=null?'₹'+inr(d.cn):''}</td>
-  <td class="num">${pending(d)?'<span class="pendv">₹'+inr(pending(d))+'</span>':''}</td><td><span class="tag ${d.status==='Open'?'open':''}">${esc(d.status)}</span></td>
+  <td class="num">${diffCell(d)}</td><td><span class="tag ${d.status==='Open'?'open':''}">${esc(d.status)}</span></td>
   <td class="ref">${esc(d.cnRef)}${d.cnDate?'<br><span class="muted">'+esc(d.cnDate)+'</span>':''}</td>
   <td class="fc">${nb?'Bill '+nb:''}${nb&&nc?' · ':''}${nc?'CN '+nc:''}</td></tr>`;
 }
-const HEAD='<thead><tr><th>Disti</th><th>Quarter</th><th>Deal details</th><th>Via</th><th>URN/PC</th><th class="num">Negotiated</th><th class="num">CN amount</th><th class="num">Pending</th><th>Status</th><th>CN ref / date</th><th>Files</th></tr></thead>';
+const HEAD='<thead><tr><th>Disti</th><th>Quarter</th><th>Deal details</th><th>Via</th><th>URN/PC</th><th class="num">Negotiated</th><th class="num">CN amount</th><th class="num" title="Open: amount still pending · Closed: CN minus negotiated">Pending / Diff</th><th>Status</th><th>CN ref / date</th><th>Files</th></tr></thead>';
 
 function render(){
   fillSel('fDisti',deals.map(d=>d.disti));
