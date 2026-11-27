@@ -451,9 +451,9 @@ qSvg.addEventListener('mousemove',e=>{
   const r=qData[+hit.dataset.i];if(!r){qTip.hidden=true;return}
   const n=Math.max(r.neg,1),on=$('fQtr').value===r.q;
   qTip.innerHTML=`<h4>${esc(r.q)}<span>${r.c} deal${r.c>1?'s':''}</span></h4>
-    <div class="r"><span><i style="background:#7c3aed"></i>Negotiated</span><b>₹${inr(r.neg)}</b></div>
-    <div class="r"><span><i style="background:#2563eb"></i>Received</span><b>₹${inr(r.rec)}</b></div>
-    <div class="r"><span><i style="background:#ef4444"></i>Pending</span><b style="color:${r.pen?'var(--red)':'inherit'}">₹${inr(r.pen)}</b></div>
+    <div class="r"><span><i style="background:#7c3aed"></i>Negotiated</span><b>₹${short(r.neg)}</b></div>
+    <div class="r"><span><i style="background:#2563eb"></i>Received</span><b>₹${short(r.rec)}</b></div>
+    <div class="r"><span><i style="background:#ef4444"></i>Pending</span><b style="color:${r.pen?'var(--red)':'inherit'}">₹${short(r.pen)}</b></div>
     ${pendBy(r.q)}
     <div class="r"><span>Recovery</span><b style="color:var(--green)">${pct(r.rec/n)}</b></div>
     <div class="ft">${on?'Click to clear filter':'Click to filter this quarter'}</div>`;
