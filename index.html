@@ -162,6 +162,9 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--soft)}
 td.ref{white-space:nowrap}
 .pendv{color:var(--red);font-weight:600}
 .gainv{color:var(--green);font-weight:600}
+tr.tot td{background:var(--vioS);border-bottom:2px solid color-mix(in srgb,var(--vio) 45%,transparent);font-size:13.5px;vertical-align:top}
+tr.tot small{display:block;color:var(--mut);font-size:11.5px;font-weight:500;margin-top:2px}
+tr.tot small .gainv,tr.tot small .pendv{font-size:11.5px}
 .muted{color:var(--mut);font-size:12.5px}
 .empty{padding:32px 12px;color:var(--mut);text-align:center}
 .note{font-size:12px;color:var(--mut);margin:10px 2px 0}
@@ -511,6 +514,16 @@ function diffCell(d){
   if(x<0)return`<span class="pendv" title="CN received less than negotiated">−₹${inr(-x)}</span>`;
   return'<span class="muted" title="CN matches negotiated amount">₹0</span>';
 }
+function totRow(L){
+  const neg=L.reduce((s,d)=>s+(d.billing||0),0),cn=L.reduce((s,d)=>s+(d.cn||0),0),pen=L.reduce((s,d)=>s+pending(d),0);
+  const cl=L.filter(d=>d.status!=='Open'&&d.cn!=null&&d.billing!=null),diff=Math.round(cl.reduce((s,d)=>s+(d.cn-d.billing),0));
+  const op=L.filter(d=>d.status==='Open').length;
+  const dtxt=diff>0?`<span class="gainv">+₹${inr(diff)}</span>`:diff<0?`<span class="pendv">−₹${inr(-diff)}</span>`:'<span class="muted">₹0</span>';
+  return`<tr class="tot"><td colspan="5"><b>Total</b> <span class="muted">· ${L.length} deal${L.length===1?'':'s'}</span></td>
+  <td class="num"><b>₹${inr(neg)}</b><small>₹${short(neg)}</small></td><td class="num"><b>₹${inr(cn)}</b><small>₹${short(cn)}</small></td>
+  <td class="num"><b class="pendv">₹${inr(pen)}</b><small>Closed diff ${dtxt}</small></td>
+  <td><small style="white-space:nowrap">${op} open<br>${L.length-op} closed</small></td><td colspan="2"></td></tr>`;
+}
 function dealRow(d){
   const nb=(d.billingFiles||[]).length,nc=(d.cnFiles||[]).length;
   return`<tr class="click" data-id="${esc(d.id)}"><td><b>${esc(d.disti)}</b></td><td>${esc(d.qtr)}<br><span class="muted">${esc(d.week)}</span></td>
@@ -547,10 +560,10 @@ function render(){
   $('bClearF').hidden=!(['fDisti','fQtr','fVia','fSt'].some(id=>$(id).value)||$('fQ').value);
   const op=[...open].sort((a,b)=>pending(b)-pending(a));
   $('openCap').textContent=`${op.length} open deal${op.length===1?'':'s'} · highest pending first · scroll to see all`;
-  $('openT').innerHTML=op.length?OHEAD+'<tbody>'+op.map(openRow).join('')+'</tbody>':'<tbody><tr><td class="empty">No open deals.</td></tr></tbody>';
+  $('openT').innerHTML=op.length?OHEAD+'<tbody>'+`<tr class="tot"><td colspan="3"><b>Total</b> <span class="muted">· ${op.length} open</span></td><td class="num"><b>₹${inr(op.reduce((s,d)=>s+(d.billing||0),0))}</b></td><td class="num"><b class="pendv">₹${inr(op.reduce((s,d)=>s+pending(d),0))}</b></td><td></td></tr>`+op.map(openRow).join('')+'</tbody>':'<tbody><tr><td class="empty">No open deals.</td></tr></tbody>';
   const all=[...L].sort((a,b)=>qKey(b.qtr)-qKey(a.qtr)||String(b.week).localeCompare(String(a.week))||(b.created||0)-(a.created||0));
   $('cnt').textContent=`${all.length} of ${deals.length} deals · click a row to edit`;
-  $('dealT').innerHTML=all.length?HEAD+'<tbody>'+all.map(dealRow).join('')+'</tbody>':'<tbody><tr><td class="empty">No deals yet. Use “New deal” or “Import Excel”.</td></tr></tbody>';
+  $('dealT').innerHTML=all.length?HEAD+'<tbody>'+totRow(all)+all.map(dealRow).join('')+'</tbody>':'<tbody><tr><td class="empty">No deals yet. Use “New deal” or “Import Excel”.</td></tr></tbody>';
 }
 const OHEAD='<thead><tr><th>Disti</th><th>Deal</th><th>Quarter</th><th class="num">Negotiated</th><th class="num">Pending</th><th>Status</th></tr></thead>';
 function openRow(d){return`<tr class="click" data-id="${esc(d.id)}"><td><b>${esc(d.disti)}</b></td><td class="det">${esc(d.details)}</td><td>${esc(d.qtr)}</td><td class="num">₹${inr(d.billing||0)}</td><td class="num"><span class="pendv">₹${inr(pending(d))}</span></td><td><span class="tag open">Open</span></td></tr>`}
