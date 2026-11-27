@@ -268,6 +268,23 @@ tr.tot small .gainv,tr.tot small .pendv{font-size:11.5px}
 .empty{padding:32px 12px;color:var(--mut);text-align:center}
 .note{font-size:12px;color:var(--mut);margin:10px 2px 0}
 .fc{white-space:nowrap;font-size:12px;color:var(--mut)}
+td.fcell{white-space:nowrap}
+.fbtn{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 9px;margin:0 4px 4px 0;border-radius:8px;font:600 12px Poppins,sans-serif;border:1px solid transparent;cursor:pointer;vertical-align:top}
+.fbtn svg{width:15px;height:15px}
+.fbtn em{font-style:normal;font-size:10.5px;font-weight:700;min-width:17px;height:17px;border-radius:99px;display:grid;place-items:center;color:#fff}
+.fbtn.billingFiles{background:var(--blueS);color:var(--blue)}.fbtn.billingFiles em{background:var(--blue)}
+.fbtn.cnFiles{background:var(--greenS);color:var(--green)}.fbtn.cnFiles em{background:var(--green)}
+button.fbtn:hover{border-color:currentColor}
+.fbtn.none{background:none;color:var(--line);cursor:default;padding:0 9px}
+.fmenu{position:fixed;z-index:61;width:min(340px,92vw);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 50px rgb(0 0 0/.35);padding:8px}
+.fmh{display:flex;justify-content:space-between;font-size:12px;font-weight:700;padding:4px 6px 8px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.fmh span{color:var(--mut);font-weight:500}
+.fmr{display:flex;align-items:center;gap:8px;padding:6px;border-radius:9px}
+.fmr:hover{background:var(--soft)}
+.fmr .ty{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--vioS);color:var(--vio)}
+.fmr a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);text-decoration:none;font-size:13px}
+.fmr a:hover{color:var(--vio);text-decoration:underline}
+.fmr .dlb{border:0;min-height:30px;padding:0 9px;border-radius:8px;background:var(--vio);color:#fff}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
 /* modal form */
 .sheet{position:fixed;inset:0;background:rgb(20 16 45/.55);display:none;justify-content:center;align-items:center;padding:24px;z-index:40;backdrop-filter:blur(2px)}
@@ -513,6 +530,7 @@ pre,.scroll{overflow-x:auto}
     </form>
   </div>
 </div>
+<div id="fmenu" class="fmenu" hidden></div>
 <div id="pv" class="pv" hidden><div class="pvh"><span id="pvName"></span><span class="pva"><button type="button" id="pvDl">Download</button><button type="button" id="pvX" aria-label="Close preview">✕</button></span></div><div id="pvBody" class="pvb"></div></div>
 <datalist id="dlDisti"><option>Ingram</option><option>Redington</option></datalist>
 
@@ -701,6 +719,14 @@ function totRow(L){
   <td class="num"><b class="pendv">₹${inr(pen)}</b></td>
   <td><small style="white-space:nowrap">${op} open<br>${L.length-op} closed</small></td><td colspan="2"></td></tr>`;
 }
+const FICON={billingFiles:['Bill','<path d="M6 2h9l3 3v17l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6M9 16h3"/>','Billing attachments'],
+  cnFiles:['CN','<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 14l2 2 4-4"/>','CN working attachments']};
+function fbtn(d,k){
+  const fs=(d[k]||[]).filter(f=>/^[\w-]{10,}$/.test(f.id||''));const [lab,ic,title]=FICON[k];
+  if(!fs.length)return`<span class="fbtn none ${k}" title="No ${title.toLowerCase()}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</svg>${lab}</span>`;
+  const one=fs.length===1?` data-pv="${fs[0].id}" data-name="${esc(fs[0].name)}"`:'';
+  return`<button type="button" class="fbtn ${k}" data-deal="${esc(d.id)}" data-k="${k}"${one} title="${esc(title)}: ${fs.map(f=>esc(f.name)).join(', ')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</svg>${lab}<em>${fs.length}</em></button>`;
+}
 function dealRow(d){
   const nb=(d.billingFiles||[]).length,nc=(d.cnFiles||[]).length;
   return`<tr class="click" data-id="${esc(d.id)}"><td><b>${esc(d.disti)}</b></td><td>${esc(d.qtr)}<br><span class="muted">${esc(d.week)}</span></td>
@@ -708,9 +734,9 @@ function dealRow(d){
   <td class="num">${d.billing!=null?'₹'+inr(d.billing):''}</td><td class="num">${d.cn!=null?'₹'+inr(d.cn):''}</td>
   <td class="num">${diffCell(d)}</td><td><span class="tag ${d.status==='Open'?'open':''}">${esc(d.status)}</span></td>
   <td class="ref">${esc(d.cnRef)}${d.cnDate?'<br><span class="muted">'+esc(d.cnDate)+'</span>':''}</td>
-  <td class="fc">${nb?'Bill '+nb:''}${nb&&nc?' · ':''}${nc?'CN '+nc:''}</td></tr>`;
+  <td class="fcell">${fbtn(d,'billingFiles')}${fbtn(d,'cnFiles')}</td></tr>`;
 }
-const HEAD='<thead><tr><th>Disti</th><th>Quarter</th><th>Deal details</th><th>Via</th><th>URN/PC</th><th class="num">Negotiated</th><th class="num">CN amount</th><th class="num" title="Open: amount still pending · Closed: CN minus negotiated">Pending / Diff</th><th>Status</th><th>CN ref / date</th><th>Files</th></tr></thead>';
+const HEAD='<thead><tr><th>Disti</th><th>Quarter</th><th>Deal details</th><th>Via</th><th>URN/PC</th><th class="num">Negotiated</th><th class="num">CN amount</th><th class="num" title="Open: amount still pending · Closed: CN minus negotiated">Pending / Diff</th><th>Status</th><th>CN ref / date</th><th>Attachments</th></tr></thead>';
 
 function render(){
   fillSel('fDisti',deals.map(d=>d.disti));
@@ -782,6 +808,19 @@ function drawAtt(){
 }
 /* attachments: fetched through the Google Script (users need no Drive access) */
 const fileCache=new Map();
+function closeFmenu(){const m=$('fmenu');if(m)m.hidden=true}
+function openFmenu(btn){
+  const d=deals.find(x=>x.id===btn.dataset.deal);if(!d)return;const k=btn.dataset.k,fs=(d[k]||[]).filter(f=>/^[\w-]{10,}$/.test(f.id||''));
+  const m=$('fmenu');
+  m.innerHTML=`<div class="fmh">${esc(FICON[k][2])}<span>${fs.length} files</span></div>`+fs.map(f=>{const ext=(String(f.name).split('.').pop()||'').toUpperCase().slice(0,4);
+    return`<div class="fmr"><span class="ty">${esc(ext)}</span><a href="#" data-pv="${f.id}" data-name="${esc(f.name)}">${esc(f.name)}</a><button type="button" class="dlb" data-dl="${f.id}" data-name="${esc(f.name)}" title="Download"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></button></div>`}).join('');
+  m.hidden=false;const r=btn.getBoundingClientRect(),W=m.offsetWidth,H=m.offsetHeight;
+  let x=Math.min(r.right-W,innerWidth-W-8),y=r.bottom+6;if(y+H>innerHeight-8)y=Math.max(8,r.top-H-6);
+  m.style.left=Math.max(8,x)+'px';m.style.top=y+'px';
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#fmenu,button.fbtn,#pv'))closeFmenu()});
+addEventListener('scroll',closeFmenu,true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFmenu()});
 async function getFileBlob(id){
   if(fileCache.has(id))return fileCache.get(id);
   const p=(async()=>{const j=await call({action:'getFile',fileId:id});
@@ -818,13 +857,14 @@ async function downloadFile(id,name,btn){
   window.closePreview=()=>{pv.hidden=true;pv.classList.remove('pin')};
   document.addEventListener('mouseover',e=>{
     if(e.target.closest('#pv')){clearTimeout(tHide);return}
-    const a=e.target.closest('a[data-pv]');if(!a||pv.classList.contains('pin')&&!pv.hidden)return;
+    const a=e.target.closest('[data-pv]');if(!a||pv.classList.contains('pin')&&!pv.hidden)return;
     clearTimeout(tHide);clearTimeout(tShow);
     tShow=setTimeout(()=>show(a.dataset.pv,a.dataset.name||a.textContent,a,false),350);
   });
-  document.addEventListener('mouseout',e=>{if(e.target.closest('a[data-pv],#pv')&&!e.relatedTarget?.closest?.('#pv,a[data-pv]'))hide()});
+  document.addEventListener('mouseout',e=>{if(e.target.closest('[data-pv],#pv')&&!e.relatedTarget?.closest?.('#pv,[data-pv]'))hide()});
   document.addEventListener('click',e=>{
-    const a=e.target.closest('a[data-pv]');if(a){e.preventDefault();clearTimeout(tShow);show(a.dataset.pv,a.dataset.name||a.textContent,a,true);return}
+    const a=e.target.closest('[data-pv]');if(a){e.preventDefault();clearTimeout(tShow);closeFmenu();show(a.dataset.pv,a.dataset.name||a.textContent,a,true);return}
+    const fb=e.target.closest('button.fbtn[data-deal]');if(fb){openFmenu(fb);return}
     const d=e.target.closest('[data-dl]');if(d){downloadFile(d.dataset.dl,d.dataset.name,d);return}
   });
   $('pvX').addEventListener('click',()=>closePreview());
@@ -902,7 +942,7 @@ $('bNew').addEventListener('click',()=>openForm(null));
 $('bCancel').addEventListener('click',()=>closeForm());
 $('sheet').addEventListener('click',e=>{if(e.target===$('sheet')&&!uploading)closeForm()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('sheet').className==='sheet on'&&!uploading)closeForm()});
-document.addEventListener('click',e=>{const tr=e.target.closest('.click[data-id]');if(tr){const d=deals.find(x=>x.id===tr.dataset.id);if(d)openForm(d)}});
+document.addEventListener('click',e=>{if(e.target.closest('.fbtn,#fmenu'))return;const tr=e.target.closest('.click[data-id]');if(tr){const d=deals.find(x=>x.id===tr.dataset.id);if(d)openForm(d)}});
 $('form').addEventListener('submit',async e=>{
   e.preventDefault();
   const o={};for(const k of F)o[k]=$('i_'+k).value.trim();
