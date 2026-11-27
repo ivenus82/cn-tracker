@@ -520,8 +520,8 @@ function totRow(L){
   const op=L.filter(d=>d.status==='Open').length;
   const dtxt=diff>0?`<span class="gainv">+₹${inr(diff)}</span>`:diff<0?`<span class="pendv">−₹${inr(-diff)}</span>`:'<span class="muted">₹0</span>';
   return`<tr class="tot"><td colspan="5"><b>Total</b> <span class="muted">· ${L.length} deal${L.length===1?'':'s'}</span></td>
-  <td class="num"><b>₹${inr(neg)}</b><small>₹${short(neg)}</small></td><td class="num"><b>₹${inr(cn)}</b><small>₹${short(cn)}</small></td>
-  <td class="num"><b class="pendv">₹${inr(pen)}</b><small>Closed diff ${dtxt}</small></td>
+  <td class="num"><b>₹${inr(neg)}</b></td><td class="num"><b>₹${inr(cn)}</b></td>
+  <td class="num"><b class="pendv">₹${inr(pen)}</b></td>
   <td><small style="white-space:nowrap">${op} open<br>${L.length-op} closed</small></td><td colspan="2"></td></tr>`;
 }
 function dealRow(d){
