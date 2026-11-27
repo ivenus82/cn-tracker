@@ -78,11 +78,30 @@ body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Poppins,system
 .connlink{background:none;border:0;color:var(--mut);font-size:12px;font-weight:500;min-height:28px;justify-content:center}
 .connlink:hover{background:none;color:var(--ink);text-decoration:underline}
 @media(max-width:720px){.lwrap{grid-template-columns:1fr;max-width:420px}.lart{display:none}.lbrand.m{display:flex;color:var(--ink)}.lbrand.m small{color:var(--mut)}.lbox{padding:30px 24px 22px}}
-.who{display:flex;align-items:center;gap:10px;padding:10px 8px 4px;margin-top:8px;border-top:1px solid rgb(255 255 255/.18)}
-.who .av{width:34px;height:34px;border-radius:50%;background:#fbbf24;color:#4c1d95;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
-.who b{display:block;font-size:13px;line-height:1.2}.who small{font-size:11px;opacity:.8}
-.who button{margin-left:auto;min-height:30px;padding:0 10px;font-size:12px;background:rgb(255 255 255/.14);border:0;color:#fff}
-.who button:hover{background:rgb(255 255 255/.24)}
+.ufoot{position:relative;margin-top:10px;border-top:1px solid rgb(255 255 255/.18);padding-top:10px}
+.who{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:6px 10px;border-radius:12px;background:none;border:0;color:#fff;cursor:pointer;text-align:left}
+.who:hover,.who[aria-expanded=true]{background:rgb(255 255 255/.12)}
+.av{width:32px;height:32px;border-radius:50%;background:#ef4444;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.av.big{width:44px;height:44px;font-size:16px}
+.who .wn{display:flex;align-items:baseline;gap:5px;min-width:0;flex:1;font-size:13.5px}
+.who .wn b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .wr{opacity:.7;font-size:12px;white-space:nowrap;flex:none}.who .wr::before{content:"· "}
+.who .chev{width:16px;height:16px;opacity:.75;flex:none;transition:transform .15s}
+.who[aria-expanded=false] .chev{transform:rotate(180deg)}
+.umenu{position:absolute;left:0;right:0;bottom:calc(100% + 8px);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 50px rgb(0 0 0/.35);padding:14px;z-index:30}
+.uhead{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.uhead b{display:block;font-size:15px}.uhead small{color:var(--mut);font-size:12px}
+.urows{display:flex;flex-direction:column;gap:7px;padding:12px 0;border-bottom:1px solid var(--line)}
+.ur{display:flex;justify-content:space-between;gap:10px;font-size:12.5px}
+.ur span{color:var(--mut)}.ur b{font-weight:600;text-align:right}
+.rbadge{font-style:normal;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--vioS);color:var(--vio)}
+.rbadge.Admin{background:var(--amberS);color:#b45309}.rbadge.Editor{background:var(--blueS);color:var(--blue)}
+.usync{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--mut);padding:10px 0;border-bottom:1px solid var(--line)}
+.usync i{width:7px;height:7px;border-radius:50%;background:#22c55e;flex:none;margin-top:5px}
+.uacts{display:flex;flex-direction:column;gap:2px;padding-top:8px}
+.ua{justify-content:flex-start;gap:10px;width:100%;min-height:38px;border:0;background:none;font-weight:500;font-size:13.5px;border-radius:10px;padding:0 10px}
+.ua:hover{background:var(--soft)}.ua svg{width:17px;height:17px;flex:none}
+.ua.out{color:var(--red)}
 body[data-role=Viewer] [data-need=editor],body:not([data-role=Admin]) [data-need=admin]{display:none!important}
 .byline{font-size:12px;color:var(--mut);font-weight:500;margin-left:10px}
 .connbtn{background:none;border:0;color:#fff;opacity:.65;font-size:12px;font-weight:500;min-height:30px;padding:0 8px;justify-content:flex-start}
@@ -285,7 +304,8 @@ pre,.scroll{overflow-x:auto}
  .brand{padding:0 6px 0 0}.side .lab,.side .sp{display:none}
  .menu{flex-direction:row;flex-wrap:wrap;gap:6px;width:100%}
  .menu a,.menu button{width:auto;flex:1 1 auto;min-height:40px;padding:0 12px;justify-content:center}
- .side .conn{width:100%;border:0;margin:0;padding:2px 6px}
+ .ufoot{width:100%;margin-top:4px}
+ .umenu{bottom:auto;top:calc(100% + 8px)}
  .menu .sub{flex-direction:row;flex-wrap:wrap;border-left:0;margin:0;padding:6px 0 0;width:100%}
  .menu .sub a{flex:1 1 auto}
  .menu .grp{width:100%}
@@ -311,9 +331,23 @@ pre,.scroll{overflow-x:auto}
   </nav>
   <div hidden><button type="button" id="bNew"></button><button type="button" id="bImp"></button><button type="button" id="bExp"></button></div>
   <div class="sp"></div>
-  <div class="conn" id="sync">Loading…</div>
-  <div class="who" id="who" hidden><div class="av" id="whoAv">?</div><div><b id="whoName"></b><small id="whoRole"></small></div><button type="button" id="bLogout">Logout</button></div>
-  <button type="button" id="bConn" class="connbtn">Connection settings</button>
+  <div class="ufoot">
+    <div class="umenu" id="whoMenu" hidden role="menu">
+      <div class="uhead"><div class="av big" id="whoAv2">?</div><div><b id="whoName2"></b><small id="whoUser"></small></div></div>
+      <div class="urows">
+        <div class="ur"><span>Role</span><b><em class="rbadge" id="whoRoleB"></em></b></div>
+        <div class="ur"><span>Signed in</span><b id="whoAt">—</b></div>
+        <div class="ur"><span>Session</span><b>6 hrs idle timeout</b></div>
+        <div class="ur"><span>Can</span><b id="whoCan"></b></div>
+      </div>
+      <div class="usync"><i></i><span id="sync">Loading…</span></div>
+      <div class="uacts">
+        <button type="button" id="bConn" class="ua"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>Connection settings</button>
+        <button type="button" id="bLogout" class="ua out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Log out</button>
+      </div>
+    </div>
+    <button type="button" class="who" id="who" hidden aria-haspopup="menu" aria-expanded="false"><span class="av" id="whoAv">?</span><span class="wn"><b id="whoName"></b><span class="wr" id="whoRole"></span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg></button>
+  </div>
   <input type="file" id="file" accept=".xlsx,.xls,.xlsm" hidden>
 </aside>
 
@@ -945,8 +979,12 @@ function saveSes(){try{SES?localStorage.setItem(SK,JSON.stringify(SES)):localSto
 function applyUser(){
   const u=SES?.user;ROLE=u?.role||'Viewer';document.body.dataset.role=ROLE;
   $('who').hidden=!u;if(!u)return;
-  $('whoName').textContent=u.name||u.username;$('whoRole').textContent=u.role+' · '+u.username;
-  $('whoAv').textContent=(u.name||u.username).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const nm=u.name||u.username,ini=nm.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  $('whoName').textContent=nm;$('whoRole').textContent=u.role;$('whoAv').textContent=ini;
+  $('whoName2').textContent=nm;$('whoUser').textContent='@'+u.username;$('whoAv2').textContent=ini;
+  $('whoRoleB').textContent=u.role;$('whoRoleB').className='rbadge '+u.role;
+  $('whoCan').textContent=u.role==='Admin'?'View, add, edit, delete, import':u.role==='Editor'?'View, add, edit':'View only';
+  $('whoAt').textContent=SES.at?new Date(SES.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
 }
 function showLogin(msg){
   $('login').hidden=false;$('l_err').textContent=msg||'';
@@ -960,13 +998,19 @@ $('loginForm').addEventListener('submit',async e=>{
   try{
     const j=await post({action:'login',username:$('l_user').value.trim(),password:$('l_pass').value});
     if(!j.ok)throw{message:j.error};
-    SES={token:j.token,user:j.user};saveSes();applyUser();$('l_pass').value='';$('login').hidden=true;
+    SES={token:j.token,user:j.user,at:Date.now()};saveSes();applyUser();$('l_pass').value='';$('login').hidden=true;
     say('Welcome, '+(j.user.name||j.user.username)+'!');await refresh();
   }catch(err){$('l_err').textContent=err?.message||'Could not sign in — check internet / URL.'}
   btn.disabled=false;btn.textContent='Sign in';
 });
 $('l_eye').addEventListener('click',()=>{const p=$('l_pass'),s=p.type==='password';p.type=s?'text':'password';$('l_eye').textContent=s?'Hide':'Show'});
 $('l_conn').addEventListener('click',openConn);
+{const btn=$('who'),menu=$('whoMenu');
+ const set=o=>{menu.hidden=!o;btn.setAttribute('aria-expanded',String(o))};
+ btn.addEventListener('click',e=>{e.stopPropagation();set(menu.hidden)});
+ document.addEventListener('click',e=>{if(!menu.hidden&&!e.target.closest('#whoMenu,#who'))set(false)});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')set(false)});
+ menu.addEventListener('click',e=>{if(e.target.closest('.ua'))set(false)});}
 $('bLogout').addEventListener('click',async()=>{const t=SES?.token;try{if(t)await post({action:'logout',token:t})}catch(e){}endSession('You have signed out.')});
 
 setInterval(()=>{if(!document.hidden&&connected()&&loggedIn()&&!busy&&$('sheet').className==='sheet')refresh(true)},60000);
