@@ -88,11 +88,14 @@ body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Poppins,system
 .who .wr{opacity:.7;font-size:12px;white-space:nowrap;flex:none}.who .wr::before{content:"· "}
 .who .chev{width:16px;height:16px;opacity:.75;flex:none;transition:transform .15s}
 .who[aria-expanded=false] .chev{transform:rotate(180deg)}
-.umenu{position:absolute;left:0;right:0;bottom:calc(100% + 8px);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 50px rgb(0 0 0/.35);padding:14px;z-index:30}
+.umenu{position:absolute;left:0;width:310px;bottom:calc(100% + 8px);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 50px rgb(0 0 0/.35);padding:14px;z-index:30}
 .uhead{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
-.uhead b{display:block;font-size:15px}.uhead small{color:var(--mut);font-size:12px}
+.uhead>div:last-child{min-width:0}.uhead b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.uhead small{color:var(--mut);font-size:12px}
 .urows{display:flex;flex-direction:column;gap:7px;padding:12px 0;border-bottom:1px solid var(--line)}
-.ur{display:flex;justify-content:space-between;gap:10px;font-size:12.5px}
+.ur{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px}
+.ur b{white-space:nowrap}
+.ucan{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.ucan span{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--soft);border:1px solid var(--line);color:var(--ink)}
 .ur span{color:var(--mut)}.ur b{font-weight:600;text-align:right}
 .rbadge{font-style:normal;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--vioS);color:var(--vio)}
 .rbadge.Admin{background:var(--amberS);color:#b45309}.rbadge.Editor{background:var(--blueS);color:var(--blue)}
@@ -374,8 +377,8 @@ pre,.scroll{overflow-x:auto}
       <div class="urows">
         <div class="ur"><span>Role</span><b><em class="rbadge" id="whoRoleB"></em></b></div>
         <div class="ur"><span>Signed in</span><b id="whoAt">—</b></div>
-        <div class="ur"><span>Session</span><b>6 hrs idle timeout</b></div>
-        <div class="ur"><span>Can</span><b id="whoCan"></b></div>
+        <div class="ur"><span>Auto logout</span><b>After 6 hrs idle</b></div>
+        <div class="ur" style="display:block"><span>Permissions</span><div class="ucan" id="whoCan"></div></div>
       </div>
       <div class="usync"><i></i><span id="sync">Loading…</span></div>
       <div class="uacts">
@@ -1066,8 +1069,8 @@ function applyUser(){
   $('whoName').textContent=nm;$('whoRole').textContent=u.role;$('whoAv').textContent=ini;
   $('whoName2').textContent=nm;$('whoUser').textContent='@'+u.username;$('whoAv2').textContent=ini;
   $('whoRoleB').textContent=u.role;$('whoRoleB').className='rbadge '+u.role;
-  $('whoCan').textContent=u.role==='Admin'?'View, add, edit, delete, import':u.role==='Editor'?'View, add, edit, import':'View only';
-  $('whoAt').textContent=SES.at?new Date(SES.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+  $('whoCan').innerHTML=(u.role==='Admin'?['View','Add','Edit','Import','Delete']:u.role==='Editor'?['View','Add','Edit','Import']:['View only']).map(x=>`<span>${x}</span>`).join('');
+  $('whoAt').textContent=SES.at?(d=>d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+', '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}))(new Date(SES.at)):'—';
 }
 function showLogin(msg){
   $('login').hidden=false;$('l_err').textContent=msg||'';
