@@ -258,7 +258,7 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--soft)}
 .tag.open{background:#ec4899}
 .chip{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:7px;background:var(--vioS);color:var(--vio);white-space:nowrap;text-decoration:none}
 .det{max-width:30em;min-width:14em}
-td.ref{white-space:nowrap}
+td.ref{white-space:nowrap;line-height:1.45;width:1%}
 .pendv{color:var(--red);font-weight:600}
 .gainv{color:var(--green);font-weight:600}
 tr.tot td{background:var(--vioS);border-bottom:2px solid color-mix(in srgb,var(--vio) 45%,transparent);font-size:13.5px;vertical-align:top}
@@ -733,7 +733,7 @@ function dealRow(d){
   <td class="det">${esc(d.details)}</td><td>${d.via?'<span class="chip">'+esc(d.via)+'</span>':''}</td><td>${esc(d.urn)}</td>
   <td class="num">${d.billing!=null?'₹'+inr(d.billing):''}</td><td class="num">${d.cn!=null?'₹'+inr(d.cn):''}</td>
   <td class="num">${diffCell(d)}</td><td><span class="tag ${d.status==='Open'?'open':''}">${esc(d.status)}</span></td>
-  <td class="ref">${esc(d.cnRef)}${d.cnDate?'<br><span class="muted">'+esc(d.cnDate)+'</span>':''}</td>
+  <td class="ref">${String(d.cnRef||'').split(/\s*[\/,]\s*/).filter(Boolean).map(esc).join('<br>')}${d.cnDate?'<br><span class="muted">'+esc(d.cnDate)+'</span>':''}</td>
   <td class="fcell">${fbtn(d,'billingFiles')}${fbtn(d,'cnFiles')}</td></tr>`;
 }
 const HEAD='<thead><tr><th>Disti</th><th>Quarter</th><th>Deal details</th><th>Via</th><th>URN/PC</th><th class="num">Negotiated</th><th class="num">CN amount</th><th class="num" title="Open: amount still pending · Closed: CN minus negotiated">Pending / Diff</th><th>Status</th><th>CN ref / date</th><th>Attachments</th></tr></thead>';
