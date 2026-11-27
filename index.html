@@ -86,6 +86,15 @@ button:disabled{opacity:.45;cursor:default}
 .fig{position:relative;min-height:300px}.fig>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .fig text{font:11.5px Poppins,sans-serif;fill:var(--mut)}
 .fig .gl{stroke:var(--line);stroke-dasharray:3 4}
+.qtip{position:absolute;z-index:5;pointer-events:none;min-width:210px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shL);padding:12px 14px;font-size:12.5px}
+.qtip h4{margin:0 0 8px;font-size:14px;font-weight:700;display:flex;justify-content:space-between;gap:12px}
+.qtip h4 span{font-weight:500;color:var(--mut);font-size:12px}
+.qtip .r{display:flex;justify-content:space-between;gap:16px;padding:3px 0}
+.qtip .r i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
+.qtip .r b{font-weight:600;white-space:nowrap}
+.qtip .bar{display:flex;height:6px;border-radius:99px;overflow:hidden;background:var(--line);margin:8px 0 6px}
+.qtip .bar i{display:block;height:100%}
+.qtip .ft{color:var(--mut);font-size:11.5px;border-top:1px solid var(--line);margin-top:8px;padding-top:7px}
 .fig rect.hit{fill:transparent;cursor:pointer}.fig rect.hit:hover{fill:color-mix(in srgb,var(--vio) 7%,transparent)}
 /* donut */
 .donut{display:grid;place-items:center;padding:6px 0}
@@ -252,7 +261,7 @@ pre,.scroll{overflow-x:auto}
       <div class="card">
         <div class="ch"><div><h2>Quarter Analytics</h2><p class="cap">Click a quarter to filter</p></div>
           <div class="legend"><span><i style="background:var(--vio)"></i>Negotiated</span><span><i style="background:var(--blue)"></i>Received</span><span><i style="background:var(--red)"></i>Pending</span></div></div>
-        <div class="fig"><svg id="qSvg" role="img" aria-label="Quarter trend chart"></svg></div>
+        <div class="fig"><svg id="qSvg" role="img" aria-label="Quarter trend chart"></svg><div id="qTip" class="qtip" hidden></div></div>
       </div>
       <div class="card">
         <h2>Disti Share</h2><p class="cap">Negotiated amount by disti · click to filter</p>
@@ -423,11 +432,31 @@ function drawQ(){
     if(on){const lab='₹'+short(r.neg),tw=lab.length*7.4+16,tx=Math.min(Math.max(X(i)-tw/2,padL),W-padR-tw);
       s+=`<rect x="${tx}" y="${Y(r.neg)-32}" width="${tw}" height="22" rx="6" fill="#ef4444"/><text x="${tx+tw/2}" y="${Y(r.neg)-17}" text-anchor="middle" style="fill:#fff;font-weight:600">${esc(lab)}</text>`}
     if(i%every===0)s+=`<text x="${X(i)}" y="${H-8}" text-anchor="middle">${esc(r.q)}</text>`;
-    s+=`<rect class="hit" x="${padL+gw*i}" y="${padT-6}" width="${gw}" height="${chH+padB}" rx="10" data-f="fQtr" data-v="${esc(r.q)}"><title>${esc(r.q)} · Negotiated ₹${inr(r.neg)} · Received ₹${inr(r.rec)} · Pending ₹${inr(r.pen)} — click to filter</title></rect>`;
+    s+=`<rect class="hit" x="${padL+gw*i}" y="${padT-6}" width="${gw}" height="${chH+padB}" rx="10" data-f="fQtr" data-v="${esc(r.q)}" data-i="${i}"/>`;
   });
   qSvg.innerHTML=s;
 }
 const qRO=new ResizeObserver(drawQ);qRO.observe(qSvg);
+const qTip=$('qTip');
+qSvg.addEventListener('mousemove',e=>{
+  const hit=e.target.closest('rect.hit');if(!hit){qTip.hidden=true;return}
+  const r=qData[+hit.dataset.i];if(!r){qTip.hidden=true;return}
+  const n=Math.max(r.neg,1),on=$('fQtr').value===r.q;
+  qTip.innerHTML=`<h4>${esc(r.q)}<span>${r.c} deal${r.c>1?'s':''}</span></h4>
+    <div class="r"><span><i style="background:#7c3aed"></i>Negotiated</span><b>₹${inr(r.neg)}</b></div>
+    <div class="r"><span><i style="background:#2563eb"></i>Received</span><b>₹${inr(r.rec)}</b></div>
+    <div class="r"><span><i style="background:#ef4444"></i>Pending</span><b style="color:${r.pen?'var(--red)':'inherit'}">₹${inr(r.pen)}</b></div>
+    <div class="bar"><i style="width:${Math.min(100,r.rec/n*100)}%;background:#22c55e"></i><i style="width:${Math.min(100,r.pen/n*100)}%;background:#ef4444"></i></div>
+    <div class="r"><span>Recovery</span><b style="color:var(--green)">${pct(r.rec/n)}</b></div>
+    <div class="ft">${on?'Click to clear filter':'Click to filter this quarter'}</div>`;
+  qTip.hidden=false;
+  const box=qSvg.getBoundingClientRect(),tw=qTip.offsetWidth,th=qTip.offsetHeight;
+  let x=e.clientX-box.left+16,y=e.clientY-box.top-th/2;
+  if(x+tw>box.width)x=e.clientX-box.left-tw-16;
+  y=Math.max(0,Math.min(y,box.height-th));
+  qTip.style.left=x+'px';qTip.style.top=y+'px';
+});
+qSvg.addEventListener('mouseleave',()=>{qTip.hidden=true});
 
 /* sparklines in KPI cards */
 function spark(id,vals){
