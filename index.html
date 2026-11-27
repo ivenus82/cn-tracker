@@ -196,6 +196,8 @@ td.ref{white-space:nowrap}
 .att li a:hover{text-decoration:underline}
 .att li .ty{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--vioS);color:var(--vio)}
 .att li button{min-height:30px;padding:0 10px;font-size:12px}
+.att li a.dlb{flex:none;display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 10px;border-radius:10px;background:var(--vio);color:#fff;font-size:12px;font-weight:600;text-decoration:none}
+.att li a.dlb:hover{background:#6d28d9;text-decoration:none}
 .att .up{min-height:34px;padding:0 12px;font-size:12.5px}
 .att .st{font-size:12px;color:var(--mut);margin-top:8px}
 .panel .note{padding:0 24px}
@@ -573,7 +575,8 @@ function drawAtt(){
     const box=$('att_'+k),ul=box.querySelector('ul');
     ul.innerHTML=att[k].map((f,i)=>{const ext=(String(f.name).split('.').pop()||'').toUpperCase().slice(0,4);
       const link=/^https:\/\//.test(f.url||'')?`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>`:`<span>${esc(f.name)}</span>`;
-      return`<li><span class="ty">${esc(ext)}</span>${link}<button type="button" data-rm="${k}" data-i="${i}" aria-label="Remove ${esc(f.name)}">Remove</button></li>`}).join('');
+      const dl=/^[\w-]{10,}$/.test(f.id||'')?`<a class="dlb" href="https://drive.google.com/uc?export=download&amp;id=${f.id}" target="_blank" rel="noopener" title="Download ${esc(f.name)}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Download</a>`:'';
+      return`<li><span class="ty">${esc(ext)}</span>${link}${dl}<button type="button" data-rm="${k}" data-i="${i}" aria-label="Remove ${esc(f.name)}">Remove</button></li>`}).join('');
     const st=box.querySelector('.st');
     st.textContent=attMsg[k]||(att[k].length?att[k].length+' file'+(att[k].length>1?'s':''):'No files attached.');
     st.style.color=attMsg[k]&&/fail|skipped|over/i.test(attMsg[k])?'var(--red)':'';
