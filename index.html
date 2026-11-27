@@ -327,8 +327,8 @@ pre,.scroll{overflow-x:auto}
       <label>Discount via<select id="i_via"><option>URN/CN/PC</option><option>Upfront</option><option>ORC</option></select></label>
       <label>URN / PC no.<input id="i_urn"></label>
       <div class="sec">Working &amp; CN details</div>
-      <label>1. Billing &amp; CN calculation amount<input id="i_billing" inputmode="decimal"></label>
-      <label>2. CN amount received<input id="i_cn" inputmode="decimal"></label>
+      <label>1. Billing &amp; CN calculation amount<input id="i_billing" inputmode="decimal" placeholder="₹ 0"></label>
+      <label>2. CN amount received<input id="i_cn" inputmode="decimal" placeholder="₹ 0"></label>
       <label>CN no. / reference<input id="i_cnRef"></label>
       <label>CN date / remarks<input id="i_cnDate"></label>
       <div class="pend" id="pend"></div>
@@ -650,7 +650,7 @@ function openForm(d){
   attMsg={};att={billingFiles:[...(d?.billingFiles||[])],cnFiles:[...(d?.cnFiles||[])]};attNew=[];attRemoved=[];drawAtt();
   editId=d?d.id:null;$('fTitle').textContent=d?'Edit deal':'New deal';$('bDel').hidden=!d;$('conf').className='conf';
   {const sv=$('i_via');[...sv.options].slice(3).forEach(o=>o.remove());const v=d?.via;if(v&&![...sv.options].some(o=>o.value===v)){const o=document.createElement('option');o.textContent=v;sv.appendChild(o)}}
-  for(const k of F){const v=d?d[k]:'';$('i_'+k).value=v==null?'':((k==='billing'||k==='cn')&&v!==''?String(v):v)}
+  for(const k of F){const v=d?d[k]:'';$('i_'+k).value=v==null?'':((k==='billing'||k==='cn')&&v!==''?fmtAmt(v):v)}
   if(!d){$('i_via').value='URN/CN/PC';$('i_status').value='Open';$('i_date').value=new Date().toISOString().slice(0,10);autoWeek()}
   showPend();$('sheet').className='sheet on';$('i_disti').focus();
 }
@@ -660,7 +660,25 @@ function closeForm(saved){
   attNew=[];attRemoved=[];$('sheet').className='sheet'}
 function autoWeek(){const w=appleWeek($('i_date').value);if(w){$('i_qtr').value=w.qtr;$('i_week').value=w.week}}
 $('i_date').addEventListener('change',autoWeek);
-$('i_billing').addEventListener('input',showPend);$('i_cn').addEventListener('input',showPend);
+/* Indian comma format for amount boxes: 1567029 -> 15,67,029 */
+function fmtAmt(s){
+  s=String(s??'').replace(/[^\d.\-]/g,'');if(!s)return'';
+  const neg=s.startsWith('-');s=s.replace(/-/g,'');
+  let [i,dp]=s.split('.');i=(i||'0').replace(/^0+(?=\d)/,'');
+  const out=Number(i).toLocaleString('en-IN')+(dp!==undefined?'.'+dp.slice(0,2):'');
+  return (neg?'-':'')+out;
+}
+for(const id of ['i_billing','i_cn']){
+  const el=$(id);
+  el.addEventListener('input',()=>{
+    const pos=el.selectionStart??el.value.length,before=el.value.slice(0,pos).replace(/[^\d.]/g,'').length;
+    el.value=fmtAmt(el.value);
+    let n=0,p=0;while(p<el.value.length&&n<before){if(/[\d.]/.test(el.value[p]))n++;p++}
+    try{el.setSelectionRange(p,p)}catch(e){}
+    showPend();
+  });
+  el.addEventListener('paste',()=>setTimeout(()=>{el.value=fmtAmt(el.value);showPend()},0));
+}
 $('bNew').addEventListener('click',()=>openForm(null));
 $('bCancel').addEventListener('click',()=>closeForm());
 $('sheet').addEventListener('click',e=>{if(e.target===$('sheet')&&!uploading)closeForm()});
