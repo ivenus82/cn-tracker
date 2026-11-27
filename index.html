@@ -99,6 +99,9 @@ button:disabled{opacity:.45;cursor:default}
 .dleg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
 /* activity */
 .act-l{display:flex;flex-direction:column}
+.sbox-scroll{max-height:520px;overflow-y:auto;scrollbar-width:thin}
+#openT thead th{position:sticky;top:0;background:var(--card);z-index:1}
+.grid3{margin-top:16px}
 .ai{display:grid;grid-template-columns:auto 40px minmax(0,1fr);gap:12px;align-items:center;padding:10px 6px;border-radius:12px;cursor:pointer}
 .ai:hover{background:var(--soft)}
 .ai .t{font-size:12px;color:var(--mut);white-space:nowrap;width:5.5em}
@@ -255,17 +258,6 @@ pre,.scroll{overflow-x:auto}
       </div>
     </div>
 
-    <div class="gridR">
-      <div class="card">
-        <h2>Recent Activities</h2><p class="cap">Latest added or updated deals</p>
-        <div class="act-l" id="recent"></div>
-      </div>
-      <div class="card tcard">
-        <div class="ch"><div><h2>Open Deals</h2><p class="cap" style="margin:0" id="openCap">Highest pending first</p></div><a href="#deals" class="chip" style="padding:7px 14px" id="openAll">View all deals →</a></div>
-        <div class="scroll"><table class="stack" id="openT"></table></div>
-      </div>
-    </div>
-
     <div class="grid3">
       <div class="card"><h2>Disti Recovery</h2><p class="cap">Received vs pending · click to filter</p><div class="dl" id="byD"></div></div>
       <div class="card"><h2>By Discount Via</h2><p class="cap">Negotiated and pending · click to filter</p><div id="byV"></div></div>
@@ -273,6 +265,17 @@ pre,.scroll{overflow-x:auto}
         <div class="status" id="stBox"></div>
         <div class="stackbar" style="height:10px;margin-top:14px"><i id="stOpen" style="background:#ec4899"></i><i id="stClosed" style="background:#22c55e"></i></div></div>
     </div>
+    <div class="gridR">
+      <div class="card">
+        <h2>Recent Activities</h2><p class="cap">Latest 50 added or updated deals · scroll to see more</p>
+        <div class="act-l sbox-scroll" id="recent"></div>
+      </div>
+      <div class="card tcard">
+        <div class="ch"><div><h2>Open Deals</h2><p class="cap" style="margin:0" id="openCap">Highest pending first</p></div><a href="#deals" class="chip" style="padding:7px 14px" id="openAll">View all deals →</a></div>
+        <div class="scroll sbox-scroll"><table class="stack" id="openT"></table></div>
+      </div>
+    </div>
+
   </section>
 
   <section id="vDeals" hidden>
@@ -447,7 +450,7 @@ function drawDonut(list){
 /* recent activity */
 function ago(t){if(!t)return'';const s=(Date.now()-t)/1000;return s<60?'Just now':s<3600?Math.floor(s/60)+' min ago':s<86400?Math.floor(s/3600)+' hr ago':s<2592000?Math.floor(s/86400)+' day'+(s<172800?'':'s')+' ago':new Date(t).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}
 function recent(list){
-  const r=[...list].sort((a,b)=>(b.updated||b.created||0)-(a.updated||a.created||0)).slice(0,6);
+  const r=[...list].sort((a,b)=>(b.updated||b.created||0)-(a.updated||a.created||0)).slice(0,50);
   return r.length?r.map(d=>{const op=d.status==='Open',col=op?'#ec4899':'#22c55e',icon=op?'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>':'<path d="M20 6 9 17l-5-5"/>';
     return`<div class="ai click" data-id="${esc(d.id)}"><span class="t">${esc(ago(d.updated||d.created))}</span><span class="ic" style="background:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></span>
       <div><b>${esc(d.details||'Deal')}</b><small>${esc(d.disti||'—')} · ${esc(d.qtr||'')} · ₹${short(d.billing||0)}${op&&pending(d)?' · <span class="pendv">₹'+short(pending(d))+' pending</span>':''}</small></div></div>`}).join(''):'<div class="empty">No deals yet.</div>';
@@ -487,8 +490,8 @@ function render(){
   for(const el of document.querySelectorAll('[data-f]')){if(el.tagName==='circle'||el.tagName==='rect')continue;const sv=$(el.dataset.f).value;el.classList.toggle('act',sv===el.dataset.v);if(el.matches('.dc,.lr,.dleg>div'))el.style.opacity=sv&&sv!==el.dataset.v?'.45':''}
   $('bClearF').hidden=!(['fDisti','fQtr','fVia','fSt'].some(id=>$(id).value)||$('fQ').value);
   const op=[...open].sort((a,b)=>pending(b)-pending(a));
-  $('openCap').textContent=op.length>8?`Top 8 of ${op.length} by pending · click a row to edit`:'Highest pending first · click a row to edit';
-  $('openT').innerHTML=op.length?OHEAD+'<tbody>'+op.slice(0,8).map(openRow).join('')+'</tbody>':'<tbody><tr><td class="empty">No open deals.</td></tr></tbody>';
+  $('openCap').textContent=`${op.length} open deal${op.length===1?'':'s'} · highest pending first · scroll to see all`;
+  $('openT').innerHTML=op.length?OHEAD+'<tbody>'+op.map(openRow).join('')+'</tbody>':'<tbody><tr><td class="empty">No open deals.</td></tr></tbody>';
   const all=[...L].sort((a,b)=>qKey(b.qtr)-qKey(a.qtr)||String(b.week).localeCompare(String(a.week))||(b.created||0)-(a.created||0));
   $('cnt').textContent=`${all.length} of ${deals.length} deals · click a row to edit`;
   $('dealT').innerHTML=all.length?HEAD+'<tbody>'+all.map(dealRow).join('')+'</tbody>':'<tbody><tr><td class="empty">No deals yet. Use “New deal” or “Import Excel”.</td></tr></tbody>';
