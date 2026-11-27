@@ -79,7 +79,7 @@ button:disabled{opacity:.45;cursor:default}
 .kpi svg.sp{width:46%;height:40px;flex:none}
 .grid{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:16px;margin-top:16px}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}
-.gridR{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.9fr);gap:16px;margin-top:16px}
+.gridR{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1.75fr);gap:16px;margin-top:16px}
 @media(max-width:1100px){.grid,.grid3,.gridR{grid-template-columns:minmax(0,1fr)}}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--mut);flex-wrap:wrap}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
@@ -102,12 +102,14 @@ button:disabled{opacity:.45;cursor:default}
 .sbox-scroll{max-height:520px;overflow-y:auto;scrollbar-width:thin}
 #openT thead th{position:sticky;top:0;background:var(--card);z-index:1}
 .grid3{margin-top:16px}
-.ai{display:grid;grid-template-columns:auto 40px minmax(0,1fr);gap:12px;align-items:center;padding:10px 6px;border-radius:12px;cursor:pointer}
+.ai{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:start;padding:12px 8px;border-radius:12px;cursor:pointer;border-bottom:1px solid var(--line)}
+.ai:last-child{border-bottom:0}
 .ai:hover{background:var(--soft)}
-.ai .t{font-size:12px;color:var(--mut);white-space:nowrap;width:5.5em}
+.ai .t{font-size:11.5px;color:var(--mut);white-space:nowrap;float:right;margin-left:10px}
 .ai .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff}
 .ai .ic svg{width:18px;height:18px}
-.ai b{display:block;font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ai b{display:block;font-weight:600;font-size:13.5px;line-height:1.4}
+.ai small span{white-space:nowrap}
 .ai small{color:var(--mut);font-size:12px}
 /* disti & via */
 .dl{display:grid;gap:10px}
@@ -452,8 +454,8 @@ function ago(t){if(!t)return'';const s=(Date.now()-t)/1000;return s<60?'Just now
 function recent(list){
   const r=[...list].sort((a,b)=>(b.updated||b.created||0)-(a.updated||a.created||0)).slice(0,50);
   return r.length?r.map(d=>{const op=d.status==='Open',col=op?'#ec4899':'#22c55e',icon=op?'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>':'<path d="M20 6 9 17l-5-5"/>';
-    return`<div class="ai click" data-id="${esc(d.id)}"><span class="t">${esc(ago(d.updated||d.created))}</span><span class="ic" style="background:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></span>
-      <div><b>${esc(d.details||'Deal')}</b><small>${esc(d.disti||'—')} · ${esc(d.qtr||'')} · ₹${short(d.billing||0)}${op&&pending(d)?' · <span class="pendv">₹'+short(pending(d))+' pending</span>':''}</small></div></div>`}).join(''):'<div class="empty">No deals yet.</div>';
+    return`<div class="ai click" data-id="${esc(d.id)}"><span class="ic" style="background:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></span>
+      <div><span class="t">${esc(ago(d.updated||d.created))}</span><b>${esc(d.details||'Deal')}</b><small>${esc(d.disti||'—')} · ${esc(d.qtr||'')} · ₹${short(d.billing||0)}${op&&pending(d)?' · <span class="pendv">₹'+short(pending(d))+' pending</span>':''}</small></div></div>`}).join(''):'<div class="empty">No deals yet.</div>';
 }
 function dealRow(d){
   const nb=(d.billingFiles||[]).length,nc=(d.cnFiles||[]).length;
