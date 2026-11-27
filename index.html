@@ -572,7 +572,7 @@ function fillSel(id,vals,sorter){
   s.innerHTML='<option value="">All</option>'+u.map(v=>`<option>${esc(v)}</option>`).join('');
   if(u.includes(cur))s.value=cur;
 }
-const pct=x=>isFinite(x)&&x>0?Math.round(x*100)+'%':'0%';
+const pct=x=>{if(!isFinite(x)||x<=0)return'0%';if(x<1&&x>=.995)return(Math.floor(x*1000)/10).toFixed(1)+'%';return Math.round(x*100)+'%'};
 function agg(list,key){
   const g={};for(const d of list){const k=d[key]||'(blank)';(g[k]??={neg:0,rec:0,pen:0,c:0});g[k].neg+=d.billing||0;g[k].rec+=received(d);g[k].pen+=pending(d);g[k].c++}
   return g;
@@ -589,11 +589,12 @@ function ring(p,col){const C=2*Math.PI*19,f=Math.max(0,Math.min(1,p));
 function distiCards(list){
   const g=agg(list,'disti'),ks=Object.keys(g).sort((a,b)=>g[b].neg-g[a].neg);
   return ks.length?ks.map(k=>{const r=g[k],n=Math.max(r.neg,1),p=r.rec/n,col=p>=.95?'#22c55e':p>=.8?'#f59e0b':'#ef4444';
-    const op=list.filter(d=>(d.disti||'(blank)')===k&&d.status==='Open').length;
+    const mine=list.filter(d=>(d.disti||'(blank)')===k),op=mine.filter(d=>d.status==='Open').length;
+    const sh=mine.reduce((s,d)=>s+(d.status!=='Open'&&d.cn!=null&&d.billing!=null&&d.billing>d.cn?d.billing-d.cn:0),0);
     return`<div class="dc"${k!=='(blank)'?` data-f="fDisti" data-v="${esc(k)}"`:''}>
       <div class="rw">${ring(p,col)}<span>${pct(p)}</span></div>
       <div class="dm"><div class="hd"><b>${esc(k)}</b><span>₹${short(r.neg)}</span></div>
-        <div class="kv"><span><i style="background:#22c55e"></i>Received <b>₹${short(r.rec)}</b></span><span><i style="background:#ef4444"></i>Pending <b class="${r.pen?'pendv':''}">₹${short(r.pen)}</b></span></div>
+        <div class="kv"><span><i style="background:#22c55e"></i>Received <b>₹${short(r.rec)}</b></span><span><i style="background:#ef4444"></i>Pending <b class="${r.pen?'pendv':''}">₹${short(r.pen)}</b></span>${sh>=1?`<span title="Closed deals where CN came less than negotiated"><i style="background:#f59e0b"></i>Short <b>₹${short(sh)}</b></span>`:''}</div>
         <small>${r.c} deal${r.c>1?'s':''} · ${op} open</small></div></div>`}).join(''):'<div class="empty">No deals for these filters.</div>';
 }
 const VPAL=['#7c3aed','#3b82f6','#f59e0b','#10b981','#ec4899','#64748b'];
