@@ -203,7 +203,27 @@ button:disabled{opacity:.45;cursor:default}
 .ai small{color:var(--mut);font-size:12px}
 /* disti & via */
 .dl{display:grid;gap:10px}
-.dc{border-radius:14px;padding:12px 14px;background:var(--soft);border:1px solid transparent}
+.dc{border-radius:14px;padding:12px 14px;background:var(--soft);border:1px solid transparent;display:flex;gap:14px;align-items:center}
+.dc .rw{position:relative;width:58px;height:58px;flex:none}
+.dc .rw svg{width:100%;height:100%}
+.dc .rw span{position:absolute;inset:0;display:grid;place-items:center;font-size:12.5px;font-weight:700}
+.dc .dm{flex:1;min-width:0}
+.dc .hd b{font-weight:700}
+.dc .kv{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--mut);margin-top:6px}
+.dc .kv i,.sbox .l i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.dc .kv b{color:var(--ink);font-weight:600}
+.dc small{display:block;font-size:11.5px;color:var(--mut);margin-top:4px}
+.vbar{display:flex;height:14px;border-radius:99px;overflow:hidden;gap:3px;margin:4px 0 12px}
+.vbar i{display:block;height:100%;border-radius:4px;min-width:6px;cursor:pointer}
+.vr{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;border:1px solid transparent}
+.vr:hover{background:var(--soft)}
+.vr .vd{width:12px;height:12px;border-radius:4px;flex:none}
+.vr .vm{flex:1;min-width:0}.vr .vm b{display:block;font-weight:600;font-size:14px}
+.vr .vm small{font-size:12px;color:var(--mut)}
+.vr .vv{text-align:right;white-space:nowrap}.vr .vv b{display:block;font-weight:700}
+.vr .vv em{font-style:normal;font-size:11.5px;font-weight:600;color:var(--vio);background:var(--vioS);padding:1px 8px;border-radius:6px}
+.vr.act{background:var(--vioS);box-shadow:none!important}
+.gauge{display:grid;place-items:center;margin:2px 0 12px}.gauge svg{width:min(240px,100%);height:auto}
 .dc .hd{display:flex;justify-content:space-between;gap:8px;font-weight:600}
 .dc .meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mut);margin-top:8px;flex-wrap:wrap}
 .dc .meta b{color:var(--red);font-weight:600}
@@ -390,11 +410,11 @@ pre,.scroll{overflow-x:auto}
     </div>
 
     <div class="grid3">
-      <div class="card"><h2>Disti Recovery</h2><p class="cap">Received vs pending · click to filter</p><div class="dl" id="byD"></div></div>
-      <div class="card"><h2>By Discount Via</h2><p class="cap">Negotiated and pending · click to filter</p><div id="byV"></div></div>
+      <div class="card"><h2>Disti Recovery</h2><p class="cap">How much of the negotiated amount has come back · click to filter</p><div class="dl" id="byD"></div></div>
+      <div class="card"><h2>By Discount Via</h2><p class="cap">Share of negotiated amount · click to filter</p><div id="byV"></div></div>
       <div class="card"><h2>Deal Status</h2><p class="cap">Open vs closed · click to filter</p>
-        <div class="status" id="stBox"></div>
-        <div class="stackbar" style="height:10px;margin-top:14px"><i id="stOpen" style="background:#ec4899"></i><i id="stClosed" style="background:#22c55e"></i></div></div>
+        <div class="gauge" id="stGauge"></div>
+        <div class="status" id="stBox"></div></div>
     </div>
     <div class="gridR">
       <div class="card">
@@ -411,7 +431,7 @@ pre,.scroll{overflow-x:auto}
 
   <section id="vDeals" hidden>
     <div class="card tcard" style="margin-top:18px">
-      <div class="ch"><div><h2>All Deals</h2><p class="cap" style="margin:0" id="cnt"></p></div><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-proxy="bNew" class="pri" data-need="editor">+ New deal</button><button type="button" data-proxy="bImp" data-need="admin">Import Excel</button><button type="button" data-proxy="bExp">Export Excel</button></div></div>
+      <div class="ch"><div><h2>All Deals</h2><p class="cap" style="margin:0" id="cnt"></p></div><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-proxy="bNew" class="pri" data-need="editor">+ New deal</button><button type="button" data-proxy="bImp" data-need="editor">Import Excel</button><button type="button" data-proxy="bExp">Export Excel</button></div></div>
       <div class="scroll"><table class="stack" id="dealT"></table></div>
       <div class="foot"><span class="muted">Data is stored in your Google Sheet; attachments in Google Drive.</span><button type="button" class="red" id="bClr" data-need="admin">Delete all deals</button></div>
       <div class="conf" id="clrConf">Delete ALL deals from the Google Sheet? Export Excel first if you need a backup.
@@ -546,11 +566,34 @@ function groupRows(list,key,sorter){
     <div><div class="stackbar" style="width:${Math.max(4,r.neg/mx*100)}%"><i style="width:${Math.min(100,r.rec/n*100)}%;background:var(--green)"></i><i style="width:${Math.min(100,r.pen/n*100)}%;background:var(--red)"></i></div></div>
     <div class="v">₹${short(r.neg)}<small>${r.pen?'<span class="pendv">₹'+short(r.pen)+' pending</span>':r.c+' deal'+(r.c>1?'s':'')}</small></div></div>`}).join(''):'<div class="empty">No deals for these filters.</div>';
 }
+function ring(p,col){const C=2*Math.PI*19,f=Math.max(0,Math.min(1,p));
+  return`<svg viewBox="0 0 48 48" class="ringv"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--line)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C*f} ${C}" transform="rotate(-90 24 24)"/></svg>`}
 function distiCards(list){
   const g=agg(list,'disti'),ks=Object.keys(g).sort((a,b)=>g[b].neg-g[a].neg);
-  return ks.length?ks.map(k=>{const r=g[k],n=Math.max(r.neg,1);return`<div class="dc"${k!=='(blank)'?` data-f="fDisti" data-v="${esc(k)}"`:''}><div class="hd"><span>${esc(k)}</span><span>₹${short(r.neg)}</span></div>
-    <div class="stackbar"><i style="width:${Math.min(100,r.rec/n*100)}%;background:var(--green)"></i><i style="width:${Math.min(100,r.pen/n*100)}%;background:var(--red)"></i></div>
-    <div class="meta"><span>Received ₹${short(r.rec)} · ${pct(r.rec/n)}</span>${r.pen?`<b>₹${short(r.pen)} pending</b>`:`<span>${r.c} deal${r.c>1?'s':''}</span>`}</div></div>`}).join(''):'<div class="empty">No deals for these filters.</div>';
+  return ks.length?ks.map(k=>{const r=g[k],n=Math.max(r.neg,1),p=r.rec/n,col=p>=.95?'#22c55e':p>=.8?'#f59e0b':'#ef4444';
+    const op=list.filter(d=>(d.disti||'(blank)')===k&&d.status==='Open').length;
+    return`<div class="dc"${k!=='(blank)'?` data-f="fDisti" data-v="${esc(k)}"`:''}>
+      <div class="rw">${ring(p,col)}<span>${pct(p)}</span></div>
+      <div class="dm"><div class="hd"><b>${esc(k)}</b><span>₹${short(r.neg)}</span></div>
+        <div class="kv"><span><i style="background:#22c55e"></i>Received <b>₹${short(r.rec)}</b></span><span><i style="background:#ef4444"></i>Pending <b class="${r.pen?'pendv':''}">₹${short(r.pen)}</b></span></div>
+        <small>${r.c} deal${r.c>1?'s':''} · ${op} open</small></div></div>`}).join(''):'<div class="empty">No deals for these filters.</div>';
+}
+const VPAL=['#7c3aed','#3b82f6','#f59e0b','#10b981','#ec4899','#64748b'];
+function viaCard(list){
+  const g=agg(list,'via'),ks=Object.keys(g).sort((a,b)=>g[b].neg-g[a].neg),tot=ks.reduce((s,k)=>s+g[k].neg,0)||1;
+  if(!ks.length)return'<div class="empty">No deals for these filters.</div>';
+  const bar=`<div class="vbar">${ks.map((k,i)=>`<i style="width:${g[k].neg/tot*100}%;background:${VPAL[i%VPAL.length]}"${k!=='(blank)'?` data-f="fVia" data-v="${esc(k)}"`:''} title="${esc(k)} · ${pct(g[k].neg/tot)}"></i>`).join('')}</div>`;
+  return bar+ks.map((k,i)=>{const r=g[k];return`<div class="vr"${k!=='(blank)'?` data-f="fVia" data-v="${esc(k)}"`:''}>
+    <span class="vd" style="background:${VPAL[i%VPAL.length]}"></span>
+    <div class="vm"><b>${esc(k)}</b><small>${r.c} deal${r.c>1?'s':''} · ${r.pen?`<span class="pendv">₹${short(r.pen)} pending</span>`:'<span class="gainv">fully received</span>'}</small></div>
+    <div class="vv"><b>₹${short(r.neg)}</b><em>${pct(r.neg/tot)}</em></div></div>`}).join('');
+}
+function gauge(closed,total){
+  const f=total?closed/total:0,R=80,L=Math.PI*R;
+  return`<svg viewBox="0 0 200 116" role="img" aria-label="${pct(f)} of deals closed"><path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#ec4899" stroke-opacity=".9" stroke-width="16" stroke-linecap="round"/>
+    <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#22c55e" stroke-width="16" stroke-linecap="round" stroke-dasharray="${L*f} ${L}"/>
+    <text x="100" y="86" text-anchor="middle" style="font:700 28px Poppins;fill:var(--ink)">${pct(f)}</text>
+    <text x="100" y="106" text-anchor="middle" style="font:12px Poppins;fill:var(--mut)">closed · ${total} deals</text></svg>`;
 }
 /* quarter chart */
 /* quarter area chart */
@@ -686,11 +729,11 @@ function render(){
   spark('spOpen',ql.map(q=>L.filter(d=>d.qtr===q&&d.status==='Open').length));
   drawDonut(filtered('fDisti'));
   $('recent').innerHTML=recent(L);
-  $('byD').innerHTML=distiCards(filtered('fDisti'));$('byV').innerHTML=groupRows(filtered('fVia'),'via');
-  $('stBox').innerHTML=`<div class="sbox" data-f="fSt" data-v="Open"><div class="l">Open</div><div class="n" style="color:#ec4899">${open.length}</div><div class="l">₹${short(pen)} pending</div></div>
-    <div class="sbox" data-f="fSt" data-v="Closed"><div class="l">Closed</div><div class="n" style="color:#22c55e">${closed}</div><div class="l">₹${short(rec)} received</div></div>`;
-  $('stOpen').style.width=(L.length?open.length/L.length*100:0)+'%';$('stClosed').style.width=(L.length?closed/L.length*100:0)+'%';
-  for(const el of document.querySelectorAll('[data-f]')){if(el.tagName==='circle'||el.tagName==='rect')continue;const sv=$(el.dataset.f).value;el.classList.toggle('act',sv===el.dataset.v);if(el.matches('.dc,.lr,.dleg>div'))el.style.opacity=sv&&sv!==el.dataset.v?'.45':''}
+  $('byD').innerHTML=distiCards(filtered('fDisti'));$('byV').innerHTML=viaCard(filtered('fVia'));
+  $('stGauge').innerHTML=gauge(closed,L.length);
+  $('stBox').innerHTML=`<div class="sbox" data-f="fSt" data-v="Open"><div class="l"><i style="background:#ec4899"></i>Open</div><div class="n" style="color:#ec4899">${open.length}</div><div class="l">₹${short(pen)} pending</div></div>
+    <div class="sbox" data-f="fSt" data-v="Closed"><div class="l"><i style="background:#22c55e"></i>Closed</div><div class="n" style="color:#22c55e">${closed}</div><div class="l">₹${short(rec)} received</div></div>`;
+  for(const el of document.querySelectorAll('[data-f]')){if(el.tagName==='circle'||el.tagName==='rect')continue;const sv=$(el.dataset.f).value;el.classList.toggle('act',sv===el.dataset.v);if(el.matches('.dc,.lr,.vr,.dleg>div,.vbar i'))el.style.opacity=sv&&sv!==el.dataset.v?'.45':''}
   $('bClearF').hidden=!(['fDisti','fQtr','fVia','fSt'].some(id=>$(id).value)||$('fQ').value);
   const op=[...open].sort((a,b)=>pending(b)-pending(a));
   $('openCap').textContent=`${op.length} open deal${op.length===1?'':'s'} · highest pending first · scroll to see all`;
@@ -983,7 +1026,7 @@ function applyUser(){
   $('whoName').textContent=nm;$('whoRole').textContent=u.role;$('whoAv').textContent=ini;
   $('whoName2').textContent=nm;$('whoUser').textContent='@'+u.username;$('whoAv2').textContent=ini;
   $('whoRoleB').textContent=u.role;$('whoRoleB').className='rbadge '+u.role;
-  $('whoCan').textContent=u.role==='Admin'?'View, add, edit, delete, import':u.role==='Editor'?'View, add, edit':'View only';
+  $('whoCan').textContent=u.role==='Admin'?'View, add, edit, delete, import':u.role==='Editor'?'View, add, edit, import':'View only';
   $('whoAt').textContent=SES.at?new Date(SES.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
 }
 function showLogin(msg){
