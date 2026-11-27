@@ -319,13 +319,15 @@ pre,.scroll{overflow-x:auto}
   <form class="panel" id="form" autocomplete="off">
     <h3 id="fTitle">New deal</h3>
     <div class="f">
-      <label class="q">ND (Disti)<input id="i_disti" list="dlDisti" required></label>
-      <label class="q">Deal date<input id="i_date" type="date"></label>
+      <label>ND (Disti)<input id="i_disti" list="dlDisti" required></label>
+      <label class="q">Deal start date<input id="i_date" type="date"></label>
+      <label class="q">Deal end date<input id="i_dateEnd" type="date"></label>
       <label class="q">Quarter (auto)<input id="i_qtr" placeholder="Q1'27"></label>
-      <label class="q">Apple week (auto)<input id="i_week" placeholder="WK05"></label>
+      <label class="q">Apple week (auto)<input id="i_week" placeholder="WK05 To WK07"></label>
+      <label class="q">Discount via<select id="i_via"><option>URN/CN/PC</option><option>Upfront</option><option>ORC</option></select></label>
+      <label class="q">URN / PC no.<input id="i_urn"></label>
+      <div class="w" id="wkNote" style="font-size:12px;color:var(--mut);margin-top:-6px"></div>
       <label class="w">Deal details<textarea id="i_details" required></textarea></label>
-      <label>Discount via<select id="i_via"><option>URN/CN/PC</option><option>Upfront</option><option>ORC</option></select></label>
-      <label>URN / PC no.<input id="i_urn"></label>
       <div class="sec">Working &amp; CN details</div>
       <label>1. Billing &amp; CN calculation amount<input id="i_billing" inputmode="decimal" placeholder="₹ 0"></label>
       <label>2. CN amount received<input id="i_cn" inputmode="decimal" placeholder="₹ 0"></label>
@@ -583,7 +585,7 @@ window.addEventListener('hashchange',route);route();
 ['fDisti','fQtr','fVia','fSt'].forEach(id=>$(id).addEventListener('change',render));$('fQ').addEventListener('input',render);
 
 /* form */
-const F=['disti','date','qtr','week','details','via','urn','billing','cn','cnRef','cnDate','status','remarks'];
+const F=['disti','date','dateEnd','qtr','week','details','via','urn','billing','cn','cnRef','cnDate','status','remarks'];
 function showPend(){const b=num($('i_billing').value)||0,c=num($('i_cn').value)||0;$('pend').innerHTML=b?`Difference (negotiated − CN): <b style="color:${b-c>0?'var(--red)':'inherit'}">₹${inr(b-c)}</b>`:''}
 /* attachments: uploaded to Google Drive through the Apps Script; list kept on the deal */
 const AK=['billingFiles','cnFiles'];
@@ -652,14 +654,24 @@ function openForm(d){
   {const sv=$('i_via');[...sv.options].slice(3).forEach(o=>o.remove());const v=d?.via;if(v&&![...sv.options].some(o=>o.value===v)){const o=document.createElement('option');o.textContent=v;sv.appendChild(o)}}
   for(const k of F){const v=d?d[k]:'';$('i_'+k).value=v==null?'':((k==='billing'||k==='cn')&&v!==''?fmtAmt(v):v)}
   if(!d){$('i_via').value='URN/CN/PC';$('i_status').value='Open';$('i_date').value=new Date().toISOString().slice(0,10);autoWeek()}
-  showPend();$('sheet').className='sheet on';$('i_disti').focus();
+  $('wkNote').textContent='';$('i_dateEnd').min=$('i_date').value||'';showPend();$('sheet').className='sheet on';$('i_disti').focus();
 }
 function closeForm(saved){
   $('pv').hidden=true;
   if(!saved)for(const f of attNew)call({action:'deleteFile',fileId:f.id}).catch(()=>{});
   attNew=[];attRemoved=[];$('sheet').className='sheet'}
-function autoWeek(){const w=appleWeek($('i_date').value);if(w){$('i_qtr').value=w.qtr;$('i_week').value=w.week}}
-$('i_date').addEventListener('change',autoWeek);
+function autoWeek(){
+  const s=$('i_date').value,e=$('i_dateEnd').value;$('i_dateEnd').min=s||'';
+  const w1=appleWeek(s),w2=appleWeek(e);let note='';
+  if(!w1&&!w2){$('wkNote').textContent='';return}
+  if(w1&&w2&&e<s){$('wkNote').textContent='End date is before start date.';$('wkNote').style.color='var(--red)';return}
+  const a=w1||w2,b=w2||w1;
+  $('i_qtr').value=a.qtr;
+  $('i_week').value=a.qtr===b.qtr?(a.week===b.week?a.week:`${a.week} To ${b.week}`):`${a.week} To ${b.qtr} ${b.week}`;
+  if(w1&&w2){const days=Math.round((Date.parse(e)-Date.parse(s))/864e5)+1;note=`${days} day${days>1?'s':''} · ${$('i_week').value}`+(a.qtr!==b.qtr?` · runs into ${b.qtr}`:'')}
+  $('wkNote').textContent=note;$('wkNote').style.color='';
+}
+$('i_date').addEventListener('change',autoWeek);$('i_dateEnd').addEventListener('change',autoWeek);$('i_date').addEventListener('input',autoWeek);$('i_dateEnd').addEventListener('input',autoWeek);
 /* Indian comma format for amount boxes: 1567029 -> 15,67,029 */
 function fmtAmt(s){
   s=String(s??'').replace(/[^\d.\-]/g,'');if(!s)return'';
@@ -701,7 +713,7 @@ $('bDelNo').addEventListener('click',()=>$('conf').className='conf');
 $('bDelYes').addEventListener('click',async()=>{try{await db.collection('deals').doc(editId).delete();say('Deal deleted.');closeForm()}catch(err){say('Delete failed: '+(err?.message||err?.code),true)}});
 
 /* Excel import — works with the old "Credit Notes Summary.xlsx" and with this tool's own export */
-const MAP=[['cnDate',/cn date/],['date',/^date$|deal date/],['via',/discount via/],['urn',/urn|pc no/],['cn',/actual|^cn amount/],
+const MAP=[['cnDate',/cn date/],['dateEnd',/end date/],['date',/^date$|deal date|start date/],['via',/discount via/],['urn',/urn|pc no/],['cn',/actual|^cn amount/],
   ['billing',/venus|billing|negotiat/],['status',/status/],['cnRef',/cn on mail|cn ref|cn no/],['remarks',/internal|^remarks?$/],
   ['disti',/disti|^nd$/],['qtr',/^qtr/],['week',/week|time period/],['details',/deal detail/]];
 const ymd=v=>v instanceof Date?new Date(v.getTime()-v.getTimezoneOffset()*6e4).toISOString().slice(0,10):String(v??'').trim();
@@ -718,7 +730,7 @@ $('file').addEventListener('change',async e=>{
       if(!col.details&&!col.disti)continue;
       for(const r of raw){
         const g=k=>col[k]?r[col[k]]:'';
-        const o={disti:String(g('disti')).trim(),date:ymd(g('date')),qtr:String(g('qtr')).trim(),week:String(g('week')).trim(),
+        const o={disti:String(g('disti')).trim(),date:ymd(g('date')),dateEnd:ymd(g('dateEnd')),qtr:String(g('qtr')).trim(),week:String(g('week')).trim(),
           details:String(g('details')).trim(),via:String(g('via')).trim(),urn:String(g('urn')).trim(),billing:num(g('billing')),cn:num(g('cn')),
           cnRef:String(g('cnRef')).trim(),cnDate:ymd(g('cnDate')),status:mapStatus(g('status')),remarks:String(g('remarks')).trim()};
         if(!o.details&&o.billing==null)continue;
@@ -738,7 +750,7 @@ $('file').addEventListener('change',async e=>{
 /* Export */
 async function doExport(){
   const L=filtered();if(!L.length){say('Nothing to export.',true);return}
-  const out=L.map(d=>({'Disti':d.disti,'Deal Date':d.date,'QTR':d.qtr,'Week':d.week,'Deal Details':d.details,'Discount Via':d.via,'URN/PC No':d.urn,
+  const out=L.map(d=>({'Disti':d.disti,'Deal Start Date':d.date,'Deal End Date':d.dateEnd,'QTR':d.qtr,'Week':d.week,'Deal Details':d.details,'Discount Via':d.via,'URN/PC No':d.urn,
     'Billing & CN Calc Amount':d.billing,'CN Amount':d.cn,'Pending':pending(d)||null,'Deal Status':d.status,'CN Ref':d.cnRef,'CN Date / Remarks':d.cnDate,'Remarks':d.remarks,
     'Billing Files':(d.billingFiles||[]).map(f=>f.name+' '+f.url).join('\n'),'CN Working Files':(d.cnFiles||[]).map(f=>f.name+' '+f.url).join('\n')}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(out),'Deals');
