@@ -283,7 +283,7 @@ pre,.scroll{overflow-x:auto}
 
   <section id="vDeals" hidden>
     <div class="card tcard" style="margin-top:18px">
-      <div class="ch"><div><h2>All Deals</h2><p class="cap" style="margin:0" id="cnt"></p></div></div>
+      <div class="ch"><div><h2>All Deals</h2><p class="cap" style="margin:0" id="cnt"></p></div><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-proxy="bNew" class="pri">+ New deal</button><button type="button" data-proxy="bImp">Import Excel</button><button type="button" data-proxy="bExp">Export Excel</button></div></div>
       <div class="scroll"><table class="stack" id="dealT"></table></div>
       <div class="foot"><span class="muted">Data is stored in your Google Sheet; attachments in Google Drive.</span><button type="button" class="red" id="bClr">Delete all deals</button></div>
       <div class="conf" id="clrConf">Delete ALL deals from the Google Sheet? Export Excel first if you need a backup.
@@ -509,6 +509,7 @@ function render(){
 }
 const OHEAD='<thead><tr><th>Disti</th><th>Deal</th><th>Quarter</th><th class="num">Negotiated</th><th class="num">Pending</th><th>Status</th></tr></thead>';
 function openRow(d){return`<tr class="click" data-id="${esc(d.id)}"><td><b>${esc(d.disti)}</b></td><td class="det">${esc(d.details)}</td><td>${esc(d.qtr)}</td><td class="num">₹${inr(d.billing||0)}</td><td class="num"><span class="pendv">₹${inr(pending(d))}</span></td><td><span class="tag open">Open</span></td></tr>`}
+document.addEventListener('click',e=>{const p=e.target.closest('[data-proxy]');if(p)$(p.dataset.proxy).click()});
 function clearF(){['fDisti','fQtr','fVia','fSt'].forEach(id=>$(id).value='');$('fQ').value='';render()}
 document.addEventListener('click',e=>{
   if(e.target.closest('#bClearF')){clearF();return}
