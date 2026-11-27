@@ -33,19 +33,31 @@ body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Poppins,system
 .menu .sub{display:flex;flex-direction:column;gap:4px;padding:6px 0 0 14px;margin-left:10px;border-left:1px solid rgb(255 255 255/.22)}
 .menu .sub[hidden]{display:none!important}
 .menu .sub a{min-height:40px;font-size:13.5px}
-.login{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:radial-gradient(1200px 600px at 20% 10%,#8b5cf6 0,transparent 60%),linear-gradient(160deg,#5b21b6,#2e1065)}
-.lbox{width:min(400px,100%);background:var(--card);border-radius:22px;padding:28px 28px 22px;box-shadow:0 30px 80px rgb(0 0 0/.4);display:flex;flex-direction:column;gap:12px}
-.lbrand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:17px;line-height:1.15}
-.lbrand small{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--mut)}
-.lbox h2{margin:8px 0 0;font-size:22px}.lbox .cap{margin:0 0 4px;font-size:12.5px;color:var(--mut)}
-.lbox label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:500;color:var(--mut)}
-.lbox input{min-height:46px;font-size:15px}
-.pw{position:relative;display:block}.pw input{width:100%;padding-right:70px}
-.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:32px;padding:0 10px;font-size:12px}
+.login{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:radial-gradient(900px 500px at 15% 10%,#8b5cf6 0,transparent 60%),radial-gradient(700px 500px at 90% 90%,#f59e0b33 0,transparent 60%),linear-gradient(160deg,#4c1d95,#1e1038);overflow:auto}
+.lwrap{width:min(860px,100%);display:grid;grid-template-columns:1fr 1fr;border-radius:26px;overflow:hidden;box-shadow:0 40px 100px rgb(0 0 0/.45);background:var(--card)}
+.lart{background:linear-gradient(150deg,#8b5cf6,#6d28d9 55%,#4c1d95);color:#fff;padding:34px 32px;display:flex;flex-direction:column;gap:22px;position:relative;overflow:hidden}
+.lart::after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:rgb(255 255 255/.08);right:-90px;top:-90px}
+.lchart{width:100%;height:auto;margin-top:auto}
+.lchips{display:flex;flex-wrap:wrap;gap:8px}
+.lchips span{font-size:12px;font-weight:600;padding:6px 12px;border-radius:99px;background:rgb(255 255 255/.16)}
+.lbrand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:18px;line-height:1.15;position:relative;z-index:1}
+.lbrand small{display:block;font-size:11px;font-weight:600;letter-spacing:.12em;opacity:.75}
+.lbrand.m{display:none}
+.lbox{padding:40px 36px 30px;display:flex;flex-direction:column;gap:14px;justify-content:center}
+.lbox h2{margin:0 0 6px;font-size:26px;font-weight:700}
+.lbox label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:600;color:var(--mut)}
+.fld{position:relative;display:block}
+.fld>svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--mut);pointer-events:none}
+.fld input{width:100%;min-height:50px;font-size:15px;padding-left:44px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.fld input:focus{border-color:var(--vio)}
+.pw input{padding-right:74px}
+.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);min-height:34px;padding:0 12px;font-size:12px;border-radius:9px}
 .lerr{min-height:18px;color:var(--red);font-size:13px;font-weight:600}
-.lbox .pri{min-height:48px;font-size:15px;justify-content:center}
-.connlink{background:none;border:0;color:var(--mut);font-size:12px;min-height:28px;justify-content:center}
+.lerr:empty{min-height:0}
+.lbox .pri{min-height:52px;font-size:15.5px;justify-content:center;border-radius:12px;box-shadow:0 10px 24px color-mix(in srgb,var(--vio) 40%,transparent);margin-top:4px}
+.connlink{background:none;border:0;color:var(--mut);font-size:12px;font-weight:500;min-height:28px;justify-content:center}
 .connlink:hover{background:none;color:var(--ink);text-decoration:underline}
+@media(max-width:720px){.lwrap{grid-template-columns:1fr;max-width:420px}.lart{display:none}.lbrand.m{display:flex;color:var(--ink)}.lbrand.m small{color:var(--mut)}.lbox{padding:30px 24px 22px}}
 .who{display:flex;align-items:center;gap:10px;padding:10px 8px 4px;margin-top:8px;border-top:1px solid rgb(255 255 255/.18)}
 .who .av{width:34px;height:34px;border-radius:50%;background:#fbbf24;color:#4c1d95;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
 .who b{display:block;font-size:13px;line-height:1.2}.who small{font-size:11px;opacity:.8}
@@ -402,15 +414,27 @@ pre,.scroll{overflow-x:auto}
   </form>
 </div>
 <div id="login" class="login" hidden>
-  <form class="lbox" id="loginForm" autocomplete="on">
-    <div class="lbrand"><div class="logo" aria-hidden="true">VP</div><div>Venus Procurement<small>HUB</small></div></div>
-    <h2>Sign in</h2><p class="cap">CN Tracker · use the username and password given by your admin</p>
-    <label>Username<input id="l_user" autocomplete="username" required autocapitalize="off" spellcheck="false"></label>
-    <label>Password<span class="pw"><input id="l_pass" type="password" autocomplete="current-password" required><button type="button" id="l_eye" aria-label="Show password">Show</button></span></label>
-    <div id="l_err" class="lerr"></div>
-    <button class="pri" type="submit" id="l_btn">Sign in</button>
-    <button type="button" class="connlink" id="l_conn">Connection settings</button>
-  </form>
+  <div class="lwrap">
+    <div class="lart" aria-hidden="true">
+      <div class="lbrand"><div class="logo">VP</div><div>Venus Procurement<small>HUB</small></div></div>
+      <svg class="lchart" viewBox="-8 -8 336 178"><defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+        <g stroke="rgb(255 255 255/.15)" stroke-dasharray="3 5"><line x1="0" y1="40" x2="320" y2="40"/><line x1="0" y1="85" x2="320" y2="85"/><line x1="0" y1="130" x2="320" y2="130"/></g>
+        <path d="M0 140 L45 118 L90 124 L135 88 L180 96 L225 58 L270 66 L320 28 L320 170 L0 170Z" fill="url(#lg1)"/>
+        <path d="M0 140 L45 118 L90 124 L135 88 L180 96 L225 58 L270 66 L320 28" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M0 150 L45 138 L90 142 L135 120 L180 126 L225 104 L270 108 L320 84" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="6 5" stroke-linejoin="round"/>
+        <circle cx="225" cy="58" r="6" fill="#fff"/><circle cx="320" cy="28" r="6" fill="#fbbf24"/></svg>
+      <div class="lchips"><span>CN Tracker</span><span>Deals</span><span>Attachments</span></div>
+    </div>
+    <form class="lbox" id="loginForm" autocomplete="on">
+      <div class="lbrand m"><div class="logo" aria-hidden="true">VP</div><div>Venus Procurement<small>HUB</small></div></div>
+      <h2>Welcome back</h2>
+      <label>Username<span class="fld"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><input id="l_user" autocomplete="username" required autocapitalize="off" spellcheck="false" placeholder="Enter username"></span></label>
+      <label>Password<span class="fld pw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input id="l_pass" type="password" autocomplete="current-password" required placeholder="Enter password"><button type="button" id="l_eye" aria-label="Show password">Show</button></span></label>
+      <div id="l_err" class="lerr" role="alert"></div>
+      <button class="pri" type="submit" id="l_btn">Sign in</button>
+      <button type="button" class="connlink" id="l_conn">Connection settings</button>
+    </form>
+  </div>
 </div>
 <div id="pv" class="pv" hidden><div class="pvh"><span id="pvName"></span><span class="pva"><button type="button" id="pvDl">Download</button><button type="button" id="pvX" aria-label="Close preview">✕</button></span></div><div id="pvBody" class="pvb"></div></div>
 <datalist id="dlDisti"><option>Ingram</option><option>Redington</option></datalist>
