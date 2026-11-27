@@ -33,6 +33,26 @@ body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Poppins,system
 .menu .sub{display:flex;flex-direction:column;gap:4px;padding:6px 0 0 14px;margin-left:10px;border-left:1px solid rgb(255 255 255/.22)}
 .menu .sub[hidden]{display:none!important}
 .menu .sub a{min-height:40px;font-size:13.5px}
+.login{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:radial-gradient(1200px 600px at 20% 10%,#8b5cf6 0,transparent 60%),linear-gradient(160deg,#5b21b6,#2e1065)}
+.lbox{width:min(400px,100%);background:var(--card);border-radius:22px;padding:28px 28px 22px;box-shadow:0 30px 80px rgb(0 0 0/.4);display:flex;flex-direction:column;gap:12px}
+.lbrand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:17px;line-height:1.15}
+.lbrand small{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--mut)}
+.lbox h2{margin:8px 0 0;font-size:22px}.lbox .cap{margin:0 0 4px;font-size:12.5px;color:var(--mut)}
+.lbox label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:500;color:var(--mut)}
+.lbox input{min-height:46px;font-size:15px}
+.pw{position:relative;display:block}.pw input{width:100%;padding-right:70px}
+.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);min-height:32px;padding:0 10px;font-size:12px}
+.lerr{min-height:18px;color:var(--red);font-size:13px;font-weight:600}
+.lbox .pri{min-height:48px;font-size:15px;justify-content:center}
+.connlink{background:none;border:0;color:var(--mut);font-size:12px;min-height:28px;justify-content:center}
+.connlink:hover{background:none;color:var(--ink);text-decoration:underline}
+.who{display:flex;align-items:center;gap:10px;padding:10px 8px 4px;margin-top:8px;border-top:1px solid rgb(255 255 255/.18)}
+.who .av{width:34px;height:34px;border-radius:50%;background:#fbbf24;color:#4c1d95;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.who b{display:block;font-size:13px;line-height:1.2}.who small{font-size:11px;opacity:.8}
+.who button{margin-left:auto;min-height:30px;padding:0 10px;font-size:12px;background:rgb(255 255 255/.14);border:0;color:#fff}
+.who button:hover{background:rgb(255 255 255/.24)}
+body[data-role=Viewer] [data-need=editor],body:not([data-role=Admin]) [data-need=admin]{display:none!important}
+.byline{font-size:12px;color:var(--mut);font-weight:500;margin-left:10px}
 .connbtn{background:none;border:0;color:#fff;opacity:.65;font-size:12px;font-weight:500;min-height:30px;padding:0 8px;justify-content:flex-start}
 .connbtn:hover{opacity:1;background:none;text-decoration:underline}
 .menu{display:flex;flex-direction:column;gap:4px}
@@ -210,10 +230,19 @@ tr.tot small .gainv,tr.tot small .pendv{font-size:11.5px}
 .pv{position:fixed;z-index:60;width:min(460px,90vw);height:min(560px,75vh);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 24px 60px rgb(0 0 0/.4);display:flex;flex-direction:column;overflow:hidden}
 .pv .pvh{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:600}
 .pv .pvh span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pv iframe{flex:1;width:100%;border:0;background:#fff}
-@media(hover:none){.pv{display:none!important}}
-.att li a.dlb{flex:none;display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 10px;border-radius:10px;background:var(--vio);color:#fff;font-size:12px;font-weight:600;text-decoration:none}
-.att li a.dlb:hover{background:#6d28d9;text-decoration:none}
+.pvb{flex:1;min-height:0;overflow:auto;background:var(--soft);display:flex}
+.pvb iframe{flex:1;width:100%;border:0;background:#fff}
+.pvb .msg{margin:auto;color:var(--mut);font-size:13px;padding:20px;text-align:center}
+.pvb table{border-collapse:collapse;font-size:12px;background:var(--card);align-self:flex-start}
+.pvb td,.pvb th{border:1px solid var(--line);padding:4px 8px;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.pvb th{position:sticky;top:0;background:var(--soft)}
+.pv .pva{display:flex;gap:6px;flex:none}
+.pv .pva button{min-height:28px;padding:0 10px;font-size:12px}
+.pv:not(.pin) #pvX{display:none}
+.pv.pin{left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:min(960px,94vw);height:min(88vh,900px)}
+@media(hover:none){.pv:not(.pin){display:none!important}}
+.att li .dlb{border:0;flex:none;display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 10px;border-radius:10px;background:var(--vio);color:#fff;font-size:12px;font-weight:600;text-decoration:none}
+.att li .dlb:hover{background:#6d28d9;text-decoration:none}
 .att .up{min-height:34px;padding:0 12px;font-size:12.5px}
 .att .st{font-size:12px;color:var(--mut);margin-top:8px}
 .panel .note{padding:0 24px}
@@ -251,6 +280,7 @@ pre,.scroll{overflow-x:auto}
   <div hidden><button type="button" id="bNew"></button><button type="button" id="bImp"></button><button type="button" id="bExp"></button></div>
   <div class="sp"></div>
   <div class="conn" id="sync">Loading…</div>
+  <div class="who" id="who" hidden><div class="av" id="whoAv">?</div><div><b id="whoName"></b><small id="whoRole"></small></div><button type="button" id="bLogout">Logout</button></div>
   <button type="button" id="bConn" class="connbtn">Connection settings</button>
   <input type="file" id="file" accept=".xlsx,.xls,.xlsm" hidden>
 </aside>
@@ -315,9 +345,9 @@ pre,.scroll{overflow-x:auto}
 
   <section id="vDeals" hidden>
     <div class="card tcard" style="margin-top:18px">
-      <div class="ch"><div><h2>All Deals</h2><p class="cap" style="margin:0" id="cnt"></p></div><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-proxy="bNew" class="pri">+ New deal</button><button type="button" data-proxy="bImp">Import Excel</button><button type="button" data-proxy="bExp">Export Excel</button></div></div>
+      <div class="ch"><div><h2>All Deals</h2><p class="cap" style="margin:0" id="cnt"></p></div><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-proxy="bNew" class="pri" data-need="editor">+ New deal</button><button type="button" data-proxy="bImp" data-need="admin">Import Excel</button><button type="button" data-proxy="bExp">Export Excel</button></div></div>
       <div class="scroll"><table class="stack" id="dealT"></table></div>
-      <div class="foot"><span class="muted">Data is stored in your Google Sheet; attachments in Google Drive.</span><button type="button" class="red" id="bClr">Delete all deals</button></div>
+      <div class="foot"><span class="muted">Data is stored in your Google Sheet; attachments in Google Drive.</span><button type="button" class="red" id="bClr" data-need="admin">Delete all deals</button></div>
       <div class="conf" id="clrConf">Delete ALL deals from the Google Sheet? Export Excel first if you need a backup.
         <div class="fa"><button type="button" class="red" id="bClrYes">Yes, delete all</button><button type="button" id="bClrNo">Keep</button></div>
       </div>
@@ -328,7 +358,7 @@ pre,.scroll{overflow-x:auto}
 
 <div class="sheet" id="sheet">
   <form class="panel" id="form" autocomplete="off">
-    <h3 id="fTitle">New deal</h3>
+    <h3><span id="fTitle">New deal</span><span class="byline" id="fBy"></span></h3>
     <div class="f">
       <label>ND (Disti)<input id="i_disti" list="dlDisti" required></label>
       <label class="q">Deal start date<input id="i_date" type="date"></label>
@@ -345,8 +375,8 @@ pre,.scroll{overflow-x:auto}
       <label>CN no. / reference<input id="i_cnRef"></label>
       <label>CN date / remarks<input id="i_cnDate"></label>
       <div class="pend" id="pend"></div>
-      <div class="att" id="att_billingFiles"><div class="hd">Billing attachments <button type="button" class="up" data-k="billingFiles">+ Attach files</button></div><ul></ul><div class="st"></div></div>
-      <div class="att" id="att_cnFiles"><div class="hd">CN working attachments <button type="button" class="up" data-k="cnFiles">+ Attach files</button></div><ul></ul><div class="st"></div></div>
+      <div class="att" id="att_billingFiles"><div class="hd">Billing attachments <button type="button" class="up" data-need="editor" data-k="billingFiles">+ Attach files</button></div><ul></ul><div class="st"></div></div>
+      <div class="att" id="att_cnFiles"><div class="hd">CN working attachments <button type="button" class="up" data-need="editor" data-k="cnFiles">+ Attach files</button></div><ul></ul><div class="st"></div></div>
       <input type="file" id="attIn" multiple accept=".pdf,.xlsx,.xls,.xlsm,.csv" hidden>
       <label>Deal status<select id="i_status"><option>Open</option><option>Closed</option></select></label>
       <label class="w">Internal remarks<textarea id="i_remarks"></textarea></label>
@@ -355,9 +385,9 @@ pre,.scroll{overflow-x:auto}
       <div class="fa"><button type="button" class="red" id="bDelYes">Yes, delete</button><button type="button" id="bDelNo">Keep</button></div>
     </div>
     <div class="fa">
-      <button class="pri" type="submit" id="bSave">Save deal</button>
+      <button class="pri" type="submit" id="bSave" data-need="editor">Save deal</button>
       <button type="button" id="bCancel">Cancel</button>
-      <button type="button" class="red" id="bDel" hidden>Delete</button>
+      <button type="button" class="red" id="bDel" hidden data-need="admin">Delete</button>
     </div>
   </form>
 </div>
@@ -366,13 +396,23 @@ pre,.scroll{overflow-x:auto}
     <h3>Google Sheet connection</h3>
     <div class="f">
       <label class="w">Google Apps Script web app URL<input id="c_url" placeholder="https://script.google.com/macros/s/…/exec" required></label>
-      <label class="w">Password (same as KEY in the script)<input id="c_key" type="password" required></label>
     </div>
-    <p class="note">Saved on this device only. Enter once on each computer or phone; the deals data itself lives in the Google Sheet and is the same everywhere.</p>
+    <p class="note">Saved on this device only. Enter once on each computer or phone; after that everyone just logs in with their own username and password.</p>
     <div class="fa"><button class="pri" type="submit">Save &amp; connect</button><button type="button" id="bConnCancel">Cancel</button></div>
   </form>
 </div>
-<div id="pv" class="pv" hidden><div class="pvh"><span id="pvName"></span><span class="muted">Preview</span></div><iframe id="pvFrame" title="File preview" loading="lazy"></iframe></div>
+<div id="login" class="login" hidden>
+  <form class="lbox" id="loginForm" autocomplete="on">
+    <div class="lbrand"><div class="logo" aria-hidden="true">VP</div><div>Venus Procurement<small>HUB</small></div></div>
+    <h2>Sign in</h2><p class="cap">CN Tracker · use the username and password given by your admin</p>
+    <label>Username<input id="l_user" autocomplete="username" required autocapitalize="off" spellcheck="false"></label>
+    <label>Password<span class="pw"><input id="l_pass" type="password" autocomplete="current-password" required><button type="button" id="l_eye" aria-label="Show password">Show</button></span></label>
+    <div id="l_err" class="lerr"></div>
+    <button class="pri" type="submit" id="l_btn">Sign in</button>
+    <button type="button" class="connlink" id="l_conn">Connection settings</button>
+  </form>
+</div>
+<div id="pv" class="pv" hidden><div class="pvh"><span id="pvName"></span><span class="pva"><button type="button" id="pvDl">Download</button><button type="button" id="pvX" aria-label="Close preview">✕</button></span></div><div id="pvBody" class="pvb"></div></div>
 <datalist id="dlDisti"><option>Ingram</option><option>Redington</option></datalist>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -517,7 +557,7 @@ function recent(list){
   const r=[...list].sort((a,b)=>(b.updated||b.created||0)-(a.updated||a.created||0)).slice(0,50);
   return r.length?r.map(d=>{const op=d.status==='Open',col=op?'#ec4899':'#22c55e',icon=op?'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>':'<path d="M20 6 9 17l-5-5"/>';
     return`<div class="ai click" data-id="${esc(d.id)}"><span class="ic" style="background:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></span>
-      <div><span class="t">${esc(ago(d.updated||d.created))}</span><b>${esc(d.details||'Deal')}</b><small>${esc(d.disti||'—')} · ${esc(d.qtr||'')} · ₹${short(d.billing||0)}${op&&pending(d)?' · <span class="pendv">₹'+short(pending(d))+' pending</span>':''}</small></div></div>`}).join(''):'<div class="empty">No deals yet.</div>';
+      <div><span class="t">${esc(ago(d.updated||d.created))}</span><b>${esc(d.details||'Deal')}</b><small>${esc(d.disti||'—')} · ${esc(d.qtr||'')} · ₹${short(d.billing||0)}${d.updatedBy?' · by '+esc(d.updatedBy):''}${op&&pending(d)?' · <span class="pendv">₹'+short(pending(d))+' pending</span>':''}</small></div></div>`}).join(''):'<div class="empty">No deals yet.</div>';
 }
 function diffCell(d){
   if(d.status==='Open')return pending(d)?'<span class="pendv">₹'+inr(pending(d))+'</span>':'';
@@ -607,36 +647,65 @@ function drawAtt(){
   for(const k of AK){
     const box=$('att_'+k),ul=box.querySelector('ul');
     ul.innerHTML=att[k].map((f,i)=>{const ext=(String(f.name).split('.').pop()||'').toUpperCase().slice(0,4);
-      const link=/^https:\/\//.test(f.url||'')?`<a href="${esc(f.url)}" target="_blank" rel="noopener"${/^[\w-]{10,}$/.test(f.id||'')?` data-pv="${f.id}"`:''}>${esc(f.name)}</a>`:`<span>${esc(f.name)}</span>`;
-      const dl=/^[\w-]{10,}$/.test(f.id||'')?`<a class="dlb" href="https://drive.google.com/uc?export=download&amp;id=${f.id}" target="_blank" rel="noopener" title="Download ${esc(f.name)}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Download</a>`:'';
-      return`<li><span class="ty">${esc(ext)}</span>${link}${dl}<button type="button" data-rm="${k}" data-i="${i}" aria-label="Remove ${esc(f.name)}">Remove</button></li>`}).join('');
+      const okId=/^[\w-]{10,}$/.test(f.id||'');
+      const link=okId?`<a href="#" data-pv="${f.id}" data-name="${esc(f.name)}" title="Hover to preview · click to open large">${esc(f.name)}</a>`:`<span>${esc(f.name)}</span>`;
+      const dl=okId?`<button type="button" class="dlb" data-dl="${f.id}" data-name="${esc(f.name)}" title="Download ${esc(f.name)}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Download</button>`:'';
+      return`<li><span class="ty">${esc(ext)}</span>${link}${dl}<button type="button" data-need="editor" data-rm="${k}" data-i="${i}" aria-label="Remove ${esc(f.name)}">Remove</button></li>`}).join('');
     const st=box.querySelector('.st');
     st.textContent=attMsg[k]||(att[k].length?att[k].length+' file'+(att[k].length>1?'s':''):'No files attached.');
     st.style.color=attMsg[k]&&/fail|skipped|over/i.test(attMsg[k])?'var(--red)':'';
   }
 }
-/* hover preview of attachments (Google Drive viewer) */
+/* attachments: fetched through the Google Script (users need no Drive access) */
+const fileCache=new Map();
+async function getFileBlob(id){
+  if(fileCache.has(id))return fileCache.get(id);
+  const p=(async()=>{const j=await call({action:'getFile',fileId:id});
+    const bin=atob(j.data),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
+    return{name:j.name,mime:j.mime,blob:new Blob([u8],{type:j.mime||'application/octet-stream'})}})();
+  fileCache.set(id,p);p.catch(()=>fileCache.delete(id));return p;
+}
+async function downloadFile(id,name,btn){
+  const old=btn?.innerHTML;if(btn){btn.disabled=true;btn.textContent='Downloading…'}
+  try{const f=await getFileBlob(id);await dl.save({filename:f.name||name||'file',data:f.blob})}
+  catch(err){say('Download failed: '+(err?.message||'error'),true)}
+  if(btn){btn.disabled=false;btn.innerHTML=old}
+}
 {
-  const pv=$('pv'),fr=$('pvFrame');let tShow=0,tHide=0,cur='';
-  const hide=()=>{clearTimeout(tShow);tHide=setTimeout(()=>{pv.hidden=true},180)};
+  const pv=$('pv'),body=$('pvBody');let tShow=0,tHide=0,cur='',urlObj='';
+  async function show(id,name,anchor,pin){
+    pv.classList.toggle('pin',!!pin);$('pvName').textContent=name;pv.dataset.id=id;pv.dataset.name=name;pv.hidden=false;
+    if(!pin){const r=anchor.getBoundingClientRect(),W=pv.offsetWidth,H=pv.offsetHeight;let x=r.left,y=r.bottom+8;
+      if(y+H>innerHeight-8)y=Math.max(8,r.top-H-8);x=Math.min(Math.max(8,x),innerWidth-W-8);pv.style.left=x+'px';pv.style.top=y+'px'}
+    if(cur===id)return;cur=id;body.innerHTML='<div class="msg">Loading preview…</div>';
+    try{
+      const f=await getFileBlob(id);if(cur!==id)return;
+      if(urlObj)URL.revokeObjectURL(urlObj);urlObj='';
+      const nm=(f.name||name).toLowerCase();
+      if(/pdf/.test(f.mime)||nm.endsWith('.pdf')){urlObj=URL.createObjectURL(f.blob);body.innerHTML='';const fr=document.createElement('iframe');fr.title='PDF preview';fr.src=urlObj;body.appendChild(fr)}
+      else if(/\.(xlsx|xls|xlsm|csv)$/.test(nm)&&window.XLSX){
+        const wb=XLSX.read(await f.blob.arrayBuffer(),{cellDates:true}),sh=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(sh,{header:1,raw:false,defval:''}).slice(0,200).map(r=>r.slice(0,30));
+        body.innerHTML=rows.length?`<table>${rows.map((r,i)=>`<tr>${r.map(c=>i?`<td>${esc(c)}</td>`:`<th>${esc(c)}</th>`).join('')}</tr>`).join('')}</table>`:'<div class="msg">Empty sheet</div>';
+      }else body.innerHTML='<div class="msg">No preview for this file type — use Download.</div>';
+    }catch(err){if(cur===id){body.innerHTML=`<div class="msg">Could not load preview: ${esc(err?.message||'error')}</div>`;cur=''}}
+  }
+  const hide=()=>{clearTimeout(tShow);if(pv.classList.contains('pin'))return;tHide=setTimeout(()=>{pv.hidden=true},180)};
+  window.closePreview=()=>{pv.hidden=true;pv.classList.remove('pin')};
   document.addEventListener('mouseover',e=>{
     if(e.target.closest('#pv')){clearTimeout(tHide);return}
-    const a=e.target.closest('a[data-pv]');if(!a)return;
+    const a=e.target.closest('a[data-pv]');if(!a||pv.classList.contains('pin')&&!pv.hidden)return;
     clearTimeout(tHide);clearTimeout(tShow);
-    tShow=setTimeout(()=>{
-      const id=a.dataset.pv;$('pvName').textContent=a.textContent;
-      if(cur!==id){fr.src='https://drive.google.com/file/d/'+id+'/preview';cur=id}
-      pv.hidden=false;
-      const r=a.getBoundingClientRect(),W=pv.offsetWidth,H=pv.offsetHeight;
-      let x=r.left,y=r.bottom+8;
-      if(y+H>innerHeight-8)y=Math.max(8,r.top-H-8);
-      x=Math.min(Math.max(8,x),innerWidth-W-8);
-      pv.style.left=x+'px';pv.style.top=y+'px';
-    },350);
+    tShow=setTimeout(()=>show(a.dataset.pv,a.dataset.name||a.textContent,a,false),350);
   });
   document.addEventListener('mouseout',e=>{if(e.target.closest('a[data-pv],#pv')&&!e.relatedTarget?.closest?.('#pv,a[data-pv]'))hide()});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')pv.hidden=true});
-  $('sheet').addEventListener('scroll',()=>{pv.hidden=true},true);
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[data-pv]');if(a){e.preventDefault();clearTimeout(tShow);show(a.dataset.pv,a.dataset.name||a.textContent,a,true);return}
+    const d=e.target.closest('[data-dl]');if(d){downloadFile(d.dataset.dl,d.dataset.name,d);return}
+  });
+  $('pvX').addEventListener('click',()=>closePreview());
+  $('pvDl').addEventListener('click',e=>downloadFile(pv.dataset.id,pv.dataset.name,e.currentTarget));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closePreview()});
 }
 const toB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(r.error);r.readAsDataURL(f)});
 document.addEventListener('click',e=>{
@@ -662,14 +731,16 @@ $('attIn').addEventListener('change',async e=>{
 });
 function openForm(d){
   attMsg={};att={billingFiles:[...(d?.billingFiles||[])],cnFiles:[...(d?.cnFiles||[])]};attNew=[];attRemoved=[];drawAtt();
-  editId=d?d.id:null;$('fTitle').textContent=d?'Edit deal':'New deal';$('bDel').hidden=!d;$('conf').className='conf';
+  editId=d?d.id:null;const ro=ROLE==='Viewer';$('fTitle').textContent=ro?'View deal':d?'Edit deal':'New deal';
+  $('fBy').textContent=d&&(d.createdBy||d.updatedBy)?[d.createdBy?'Added by '+d.createdBy:'',d.updatedBy?'Last updated by '+d.updatedBy:''].filter(Boolean).join(' · '):'';
+  for(const el of $('form').querySelectorAll('.f input,.f select,.f textarea'))el.disabled=ro;$('bDel').hidden=!d;$('conf').className='conf';
   {const sv=$('i_via');[...sv.options].slice(3).forEach(o=>o.remove());const v=d?.via;if(v&&![...sv.options].some(o=>o.value===v)){const o=document.createElement('option');o.textContent=v;sv.appendChild(o)}}
   for(const k of F){const v=d?d[k]:'';$('i_'+k).value=v==null?'':((k==='billing'||k==='cn')&&v!==''?fmtAmt(v):v)}
   if(!d){$('i_via').value='URN/CN/PC';$('i_status').value='Open';$('i_date').value=new Date().toISOString().slice(0,10);autoWeek()}
   $('wkNote').textContent='';$('i_dateEnd').min=$('i_date').value||'';showPend();$('sheet').className='sheet on';$('i_disti').focus();
 }
 function closeForm(saved){
-  $('pv').hidden=true;
+  closePreview();
   if(!saved)for(const f of attNew)call({action:'deleteFile',fileId:f.id}).catch(()=>{});
   attNew=[];attRemoved=[];$('sheet').className='sheet'}
 function autoWeek(){
@@ -763,7 +834,7 @@ $('file').addEventListener('change',async e=>{
 async function doExport(){
   const L=filtered();if(!L.length){say('Nothing to export.',true);return}
   const out=L.map(d=>({'Disti':d.disti,'Deal Start Date':d.date,'Deal End Date':d.dateEnd,'QTR':d.qtr,'Week':d.week,'Deal Details':d.details,'Discount Via':d.via,'URN/PC No':d.urn,
-    'Billing & CN Calc Amount':d.billing,'CN Amount':d.cn,'Pending':pending(d)||null,'Deal Status':d.status,'CN Ref':d.cnRef,'CN Date / Remarks':d.cnDate,'Remarks':d.remarks,
+    'Billing & CN Calc Amount':d.billing,'CN Amount':d.cn,'Pending':pending(d)||null,'Deal Status':d.status,'CN Ref':d.cnRef,'CN Date / Remarks':d.cnDate,'Remarks':d.remarks,'Created By':d.createdBy,'Updated By':d.updatedBy,
     'Billing Files':(d.billingFiles||[]).map(f=>f.name+' '+f.url).join('\n'),'CN Working Files':(d.cnFiles||[]).map(f=>f.name+' '+f.url).join('\n')}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(out),'Deals');
   const buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});
@@ -772,23 +843,34 @@ async function doExport(){
 }
 $('bExp').addEventListener('click',()=>{if(!dl||!window.XLSX){say('Download not available in this view.',true);return}doExport()});
 
-/* storage: Google Sheet via Apps Script web app (shared by everyone who has the URL + password) */
-const CK='cn_tracker_conn_v1';
+/* storage: Google Sheet via Apps Script web app, with per-user login */
+const CK='cn_tracker_conn_v1',SK='cn_tracker_session_v1';
 let CFG={};try{CFG=JSON.parse(localStorage.getItem(CK)||'{}')}catch(e){}
-const connected=()=>CFG.url&&CFG.key;
+let SES=null;try{SES=JSON.parse(localStorage.getItem(SK)||'null')}catch(e){}
+const connected=()=>!!CFG.url;
+const loggedIn=()=>!!(SES&&SES.token);
+async function post(body){
+  if(!connected())throw{message:'Not connected — open Connection settings and add the Google Script URL.'};
+  const r=await fetch(CFG.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+  const t=await r.text();let j;try{j=JSON.parse(t)}catch(e){const m=/<div[^>]*>([^<]{5,300})<\/div>/.exec(t);throw{message:'Google Script error'+(m?': '+m[1]:'')}}
+  return j;
+}
 async function call(body){
-  if(!connected())throw{message:'Not connected — click Connection and add the Google Script URL.'};
-  const r=await fetch(CFG.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...body,key:CFG.key})});
-  const t=await r.text();let j;try{j=JSON.parse(t)}catch(e){const m=/<div[^>]*>([^<]{5,300})<\/div>/.exec(t);throw{message:'Google Script error'+(m?': '+m[1]:'')+' — run doGet once in Apps Script to grant Drive permission, then redeploy.'}}
+  if(!loggedIn()){showLogin();throw{message:'Please sign in'}}
+  const j=await post({...body,token:SES.token});
+  if(!j.ok&&j.error==='AUTH'){endSession('Session expired — please sign in again.');throw{message:'Session expired'}}
   if(!j.ok)throw{message:j.error||'Server error'};return j;
 }
 let busy=false;
 async function refresh(quiet){
-  if(!connected()){$('sync').textContent='Not connected to Google Sheet — click Connection.';render();return}
+  if(!connected()){$('sync').textContent='Not connected to Google Sheet — open Connection settings.';render();return}
+  if(!loggedIn()){showLogin();return}
   if(!quiet)$('sync').textContent='Loading from Google Sheet…';
   try{
-    const r=await fetch(CFG.url+'?key='+encodeURIComponent(CFG.key));const j=await r.json();
+    const r=await fetch(CFG.url+'?token='+encodeURIComponent(SES.token));const j=await r.json();
+    if(!j.ok&&j.error==='AUTH'){endSession('Session expired — please sign in again.');return}
     if(!j.ok)throw{message:j.error};
+    if(j.user){SES.user=j.user;saveSes();applyUser()}
     if(!busy){deals=j.deals.filter(d=>d.id).map(d=>({...d,billingFiles:pj(d.billingFiles),cnFiles:pj(d.cnFiles),billing:num(d.billing),cn:num(d.cn),created:+d.created||0,updated:+d.updated||0}));render()}
     $('sync').textContent=`${deals.length} deals · Google Sheet · refreshed ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
   }catch(err){$('sync').textContent='Could not load from Google Sheet: '+(err?.message||'check URL / password / internet')}
@@ -802,16 +884,46 @@ db={collection:()=>({doc:(id)=>{id=id||newId();return{id,
 dl={save:async({filename,data})=>{const a=document.createElement('a');a.href=URL.createObjectURL(data);a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}};
 
 /* connection panel */
-function openConn(){$('c_url').value=CFG.url||'';$('c_key').value=CFG.key||'';$('connSheet').className='sheet on'}
+function openConn(){$('c_url').value=CFG.url||'';$('connSheet').className='sheet on'}
 $('bConn').addEventListener('click',openConn);
 $('bConnCancel').addEventListener('click',()=>$('connSheet').className='sheet');
 $('connForm').addEventListener('submit',async e=>{
-  e.preventDefault();CFG={url:$('c_url').value.trim(),key:$('c_key').value.trim()};
+  e.preventDefault();CFG={url:$('c_url').value.trim()};
   try{localStorage.setItem(CK,JSON.stringify(CFG))}catch(err){}
-  $('connSheet').className='sheet';await refresh();
+  $('connSheet').className='sheet';if(loggedIn())await refresh();else showLogin();
 });
-setInterval(()=>{if(!document.hidden&&connected()&&!busy&&$('sheet').className==='sheet')refresh(true)},60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&connected())refresh(true)});
+/* login / session */
+let ROLE='Viewer';
+function saveSes(){try{SES?localStorage.setItem(SK,JSON.stringify(SES)):localStorage.removeItem(SK)}catch(e){}}
+function applyUser(){
+  const u=SES?.user;ROLE=u?.role||'Viewer';document.body.dataset.role=ROLE;
+  $('who').hidden=!u;if(!u)return;
+  $('whoName').textContent=u.name||u.username;$('whoRole').textContent=u.role+' · '+u.username;
+  $('whoAv').textContent=(u.name||u.username).split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+function showLogin(msg){
+  $('login').hidden=false;$('l_err').textContent=msg||'';
+  if(!connected())$('l_err').textContent='First set the Google Script URL in Connection settings.';
+  setTimeout(()=>$('l_user').focus(),50);
+}
+function endSession(msg){SES=null;saveSes();deals=[];fileCache.clear();closeForm(true);render();applyUser();showLogin(msg)}
+$('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!connected()){openConn();return}
+  const btn=$('l_btn');btn.disabled=true;btn.textContent='Signing in…';$('l_err').textContent='';
+  try{
+    const j=await post({action:'login',username:$('l_user').value.trim(),password:$('l_pass').value});
+    if(!j.ok)throw{message:j.error};
+    SES={token:j.token,user:j.user};saveSes();applyUser();$('l_pass').value='';$('login').hidden=true;
+    say('Welcome, '+(j.user.name||j.user.username)+'!');await refresh();
+  }catch(err){$('l_err').textContent=err?.message||'Could not sign in — check internet / URL.'}
+  btn.disabled=false;btn.textContent='Sign in';
+});
+$('l_eye').addEventListener('click',()=>{const p=$('l_pass'),s=p.type==='password';p.type=s?'text':'password';$('l_eye').textContent=s?'Hide':'Show'});
+$('l_conn').addEventListener('click',openConn);
+$('bLogout').addEventListener('click',async()=>{const t=SES?.token;try{if(t)await post({action:'logout',token:t})}catch(e){}endSession('You have signed out.')});
+
+setInterval(()=>{if(!document.hidden&&connected()&&loggedIn()&&!busy&&$('sheet').className==='sheet')refresh(true)},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&connected()&&loggedIn())refresh(true)});
 
 /* delete all */
 $('bClr').addEventListener('click',()=>$('clrConf').className='conf on');
@@ -819,7 +931,9 @@ $('bClrNo').addEventListener('click',()=>$('clrConf').className='conf');
 $('bClrYes').addEventListener('click',async()=>{$('clrConf').className='conf';try{busy=true;await call({action:'clear'});deals=[];render();say('All deals deleted.')}catch(err){say('Delete failed: '+err.message,true)}finally{busy=false}});
 
 render();
-if(connected())refresh();else{$('sync').textContent='Not connected to Google Sheet — click Connection.';openConn()}
+applyUser();
+if(!connected()){$('sync').textContent='Not connected — open Connection settings.';showLogin();openConn()}
+else if(!loggedIn())showLogin();else refresh();
 }
 </script>
 </body>
