@@ -132,6 +132,7 @@ h1{font-size:22px;font-weight:700;margin:0;line-height:1.2}
 .filters label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:500;color:var(--mut)}
 select,input,textarea{font:14px Poppins,sans-serif;min-height:40px;padding:8px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px}
 .filters select{min-width:120px}
+.facts{display:flex;gap:8px;flex-wrap:wrap;align-self:end}
 textarea{min-height:60px;resize:vertical}
 button{font:600 13.5px Poppins,sans-serif;min-height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 button:hover{background:var(--soft)}
@@ -399,6 +400,7 @@ pre,.scroll{overflow-x:auto}
     <label>Status<select id="fSt"><option value="">All</option><option>Open</option><option>Closed</option></select></label>
     <label class="search" style="flex:1 1 260px;max-width:380px">Search<span style="position:relative;display:block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="fQ" type="search" placeholder="Deal, URN, CN ref"></span></label>
     <button type="button" id="bClearF" hidden>Clear filters</button>
+    <div class="facts"><button type="button" data-proxy="bNew" class="pri" data-need="editor">+ New deal</button><button type="button" data-proxy="bImp" data-need="editor">Import Excel</button><button type="button" data-proxy="bExp">Export Excel</button></div>
   </div>
   <div id="msg"></div>
 
@@ -451,7 +453,7 @@ pre,.scroll{overflow-x:auto}
 
   <section id="vDeals" hidden>
     <div class="card tcard" style="margin-top:18px">
-      <div class="ch"><div><h2>All Deals</h2><p class="cap" style="margin:0" id="cnt"></p></div><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-proxy="bNew" class="pri" data-need="editor">+ New deal</button><button type="button" data-proxy="bImp" data-need="editor">Import Excel</button><button type="button" data-proxy="bExp">Export Excel</button></div></div>
+      <div class="ch"><div><h2>All Deals</h2><p class="cap" style="margin:0" id="cnt"></p></div></div>
       <div class="scroll"><table class="stack" id="dealT"></table></div>
       <div class="foot"><span class="muted">Data is stored in your Google Sheet; attachments in Google Drive.</span><button type="button" class="red" id="bClr" data-need="admin">Delete all deals</button></div>
       <div class="conf" id="clrConf">Delete ALL deals from the Google Sheet? Export Excel first if you need a backup.
